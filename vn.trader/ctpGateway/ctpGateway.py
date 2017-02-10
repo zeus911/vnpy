@@ -498,7 +498,6 @@ class CtpTdApi(TdApi):
     def onRspUserLogin(self, data, error, n, last):
         """登陆回报"""
         # 如果登录成功，推送日志信息
-        print(error)
         if error[b'ErrorID'] == 0:
             self.frontID = str(data[b'FrontID'])
             self.sessionID = str(data[b'SessionID'])

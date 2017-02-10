@@ -338,7 +338,7 @@ class BasicMonitor(QtWidgets.QTableWidget):
     #----------------------------------------------------------------------
     def resizeColumns(self):
         """调整各列的大小"""
-        self.horizontalHeader().resizeSections(QtGui.QHeaderView.ResizeToContents)    
+        self.horizontalHeader().resizeSections(QtWidgets.QHeaderView.ResizeToContents)    
         
     #----------------------------------------------------------------------
     def setSorting(self, sorting):
@@ -356,7 +356,7 @@ class BasicMonitor(QtWidgets.QTableWidget):
 
         try:
             if not path.isEmpty():
-                with open(unicode(path), 'wb') as f:
+                with open(str(path), 'wb') as f:
                     writer = csv.writer(f)
                     
                     # 保存标签
@@ -370,7 +370,7 @@ class BasicMonitor(QtWidgets.QTableWidget):
                             item = self.item(row, column)
                             if item is not None:
                                 rowdata.append(
-                                    unicode(item.text()).encode('gbk'))
+                                    str(item.text()).encode('gbk'))
                             else:
                                 rowdata.append('')
                         writer.writerow(rowdata)     
@@ -881,10 +881,10 @@ class TradingWidget(QtWidgets.QFrame):
         """合约变化"""
         # 读取组件数据
         symbol = str(self.lineSymbol.text())
-        exchange = unicode(self.comboExchange.currentText())
-        currency = unicode(self.comboCurrency.currentText())
-        productClass = unicode(self.comboProductClass.currentText())           
-        gatewayName = unicode(self.comboGateway.currentText())
+        exchange = str(self.comboExchange.currentText())
+        currency = str(self.comboCurrency.currentText())
+        productClass = str(self.comboProductClass.currentText())           
+        gatewayName = str(self.comboGateway.currentText())
         
         # 查询合约
         if exchange:
@@ -998,10 +998,10 @@ class TradingWidget(QtWidgets.QFrame):
     def sendOrder(self):
         """发单"""
         symbol = str(self.lineSymbol.text())
-        exchange = unicode(self.comboExchange.currentText())
-        currency = unicode(self.comboCurrency.currentText())
-        productClass = unicode(self.comboProductClass.currentText())           
-        gatewayName = unicode(self.comboGateway.currentText())        
+        exchange = str(self.comboExchange.currentText())
+        currency = str(self.comboCurrency.currentText())
+        productClass = str(self.comboProductClass.currentText())           
+        gatewayName = str(self.comboGateway.currentText())        
 
         # 查询合约
         if exchange:
@@ -1020,9 +1020,9 @@ class TradingWidget(QtWidgets.QFrame):
         req.exchange = exchange
         req.price = self.spinPrice.value()
         req.volume = self.spinVolume.value()
-        req.direction = unicode(self.comboDirection.currentText())
-        req.priceType = unicode(self.comboPriceType.currentText())
-        req.offset = unicode(self.comboOffset.currentText())
+        req.direction = str(self.comboDirection.currentText())
+        req.priceType = str(self.comboPriceType.currentText())
+        req.offset = str(self.comboOffset.currentText())
         req.currency = currency
         req.productClass = productClass
         

@@ -171,8 +171,8 @@ def main():
     eventEngine.start(timer=False)
 
     # 创建客户端
-    reqAddress = 'tcp://192.168.1.106:2014'
-    subAddress = 'tcp://192.168.1.106:0602'
+    reqAddress = 'tcp://localhost:2014'
+    subAddress = 'tcp://localhost:0602'
     client = VtClient(reqAddress, subAddress, eventEngine)
 
     client.subscribeTopic('')
@@ -184,13 +184,17 @@ def main():
     app.setFont(BASIC_FONT)
     
     # 设置Qt的皮肤
+    import traceback
     try:
-        f = file(SETTING_FILENAME)
-        setting = json.load(f)    
+        f = open(SETTING_FILENAME)
+        setting = json.load(f)
+        print(setting)
         if setting['darkStyle']:
             import qdarkstyle
             app.setStyleSheet(qdarkstyle.load_stylesheet(pyside=False))
-    except:
+    except Exception as e:
+        print(e)
+        #traceback.print_exc()
         pass    
     
     # 初始化主引擎和主窗口对象
