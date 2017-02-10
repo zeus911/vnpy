@@ -250,8 +250,8 @@ def createFunction(fcName, fcArgsTypeList, fcArgsValueList):
         ffunction.write(line)
 
         if type_ == 'CThostFtdcInputOrderField':
-            print key, value
-            print line
+            print (key, value)
+            print (line)
 
     ffunction.write('\tint i = this->api->' + fcName + '(&myreq, nRequestID);\n')
     ffunction.write('\treturn i;\n')

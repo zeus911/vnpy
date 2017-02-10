@@ -8,7 +8,7 @@ from dataRecorder.uiDrWidget import DrEngineManager
 from riskManager.uiRmWidget import RmEngineManager
 
 ########################################################################
-class MainWindow(QtGui.QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
     """主窗口"""
     signalStatusBar = QtCore.pyqtSignal(type(Event()))
 
@@ -106,7 +106,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def initStatusBar(self):
         """初始化状态栏"""
-        self.statusLabel = QtGui.QLabel()
+        self.statusLabel = QtWidgets.QLabel()
         self.statusLabel.setAlignment(QtCore.Qt.AlignLeft)
         
         self.statusBar().addPermanentWidget(self.statusLabel)
@@ -151,7 +151,7 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def createAction(self, actionName, function):
         """创建操作功能"""
-        action = QtGui.QAction(actionName, self)
+        action = QtWidgets.QAction(actionName, self)
         action.triggered.connect(function)
         return action
         
@@ -209,11 +209,11 @@ class MainWindow(QtGui.QMainWindow):
     #----------------------------------------------------------------------
     def closeEvent(self, event):
         """关闭事件"""
-        reply = QtGui.QMessageBox.question(self, u'退出',
-                                           u'确认退出?', QtGui.QMessageBox.Yes | 
-                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
+        reply = QtWidgets.QMessageBox.question(self, u'退出',
+                                           u'确认退出?', QtWidgets.QMessageBox.Yes | 
+                                           QtWidgets.QMessageBox.No, QtWidgets.QMessageBox.No)
 
-        if reply == QtGui.QMessageBox.Yes: 
+        if reply == QtWidgets.QMessageBox.Yes: 
             for widget in self.widgetDict.values():
                 widget.close()
             self.saveWindowSettings('custom')
@@ -227,7 +227,7 @@ class MainWindow(QtGui.QMainWindow):
     def createDock(self, widgetClass, widgetName, widgetArea):
         """创建停靠组件"""
         widget = widgetClass(self.mainEngine, self.eventEngine)
-        dock = QtGui.QDockWidget(widgetName)
+        dock = QtWidgets.QDockWidget(widgetName)
         dock.setWidget(widget)
         dock.setObjectName(widgetName)
         dock.setFeatures(dock.DockWidgetFloatable|dock.DockWidgetMovable)
@@ -265,7 +265,7 @@ class MainWindow(QtGui.QMainWindow):
 
 
 ########################################################################
-class AboutWidget(QtGui.QDialog):
+class AboutWidget(QtWidgets.QDialog):
     """显示关于信息"""
 
     #----------------------------------------------------------------------
@@ -291,11 +291,11 @@ class AboutWidget(QtGui.QDialog):
             
             """
 
-        label = QtGui.QLabel()
+        label = QtWidgets.QLabel()
         label.setText(text)
         label.setMinimumWidth(500)
 
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addWidget(label)
 
         self.setLayout(vbox)

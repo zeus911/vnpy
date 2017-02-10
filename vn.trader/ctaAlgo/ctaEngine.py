@@ -22,8 +22,8 @@ import traceback
 from collections import OrderedDict
 from datetime import datetime, timedelta
 
-from ctaBase import *
-from ctaSetting import STRATEGY_CLASS
+from ctaAlgo.ctaBase import *
+from ctaAlgo.ctaSetting import STRATEGY_CLASS
 from eventEngine import *
 from vtConstant import *
 from vtGateway import VtSubscribeReq, VtOrderReq, VtCancelOrderReq, VtLogData
@@ -365,7 +365,7 @@ class CtaEngine(object):
         try:
             name = setting['name']
             className = setting['className']
-        except Exception, e:
+        except Exception as e:
             self.writeCtaLog(u'载入策略出错：%s' %e)
             return
         

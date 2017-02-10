@@ -6,12 +6,13 @@
 
 import json
 
-from uiBasicWidget import QtGui, QtCore
+from uiBasicWidget import QtGui, QtCore,QtWidgets
 from eventEngine import *
 
 
+
 ########################################################################
-class TableCell(QtGui.QTableWidgetItem):
+class TableCell(QtWidgets.QTableWidgetItem):
     """居中的单元格"""
 
     #----------------------------------------------------------------------
@@ -33,7 +34,7 @@ class TableCell(QtGui.QTableWidgetItem):
 
 
 ########################################################################
-class DrEngineManager(QtGui.QWidget):
+class DrEngineManager(QtWidgets.QWidget):
     """行情数据记录引擎管理组件"""
     signal = QtCore.pyqtSignal(type(Event()))
 

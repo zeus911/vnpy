@@ -4,6 +4,7 @@ import sys
 import os
 import ctypes
 import platform
+import importlib
 
 import vtPath
 from uiMainWindow import *
@@ -157,8 +158,9 @@ class ClientEngine(object):
 def main():
     """客户端主程序入口"""
     # 重载sys模块，设置默认字符串编码方式为utf8
-    reload(sys)
-    sys.setdefaultencoding('utf8')    
+    #reload(sys)
+    #sys.setdefaultencoding('utf8')    
+    importlib.reload(sys)
     
     # 设置Windows底部任务栏图标
     if 'Windows' in platform.uname() :
@@ -169,15 +171,15 @@ def main():
     eventEngine.start(timer=False)
 
     # 创建客户端
-    reqAddress = 'tcp://localhost:2014'
-    subAddress = 'tcp://localhost:0602'
+    reqAddress = 'tcp://192.168.1.106:2014'
+    subAddress = 'tcp://192.168.1.106:0602'
     client = VtClient(reqAddress, subAddress, eventEngine)
 
     client.subscribeTopic('')
     client.start()
     
     # 初始化Qt应用对象
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(ICON_FILENAME))
     app.setFont(BASIC_FONT)
     

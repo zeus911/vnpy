@@ -65,7 +65,7 @@ class VtServer(RpcServer):
 #----------------------------------------------------------------------
 def printLog(content):
     """打印日志"""
-    print datetime.now().strftime("%H:%M:%S"), '\t', content
+    print (datetime.now().strftime("%H:%M:%S"), '\t', content)
 
 
 #----------------------------------------------------------------------
@@ -81,14 +81,15 @@ def runServer():
     printLog('-'*50)
     printLog(u'vn.trader服务器已启动')
     
+    server.engine.connect('CTP')
     # 进入主循环
     while True:
         printLog(u'请输入exit来关闭服务器')
-        if raw_input() != 'exit':
+        if input() != 'exit':
             continue
 
         printLog(u'确认关闭服务器？yes|no')
-        if raw_input() == 'yes':
+        if input() == 'yes':
             break
     
     server.stopServer()

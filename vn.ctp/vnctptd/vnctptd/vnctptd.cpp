@@ -1,22 +1,119 @@
-// vnctptd.cpp : ¶¨Òå DLL Ó¦ÓÃ³ÌÐòµÄµ¼³öº¯Êý¡£
+// vnctptd.cpp : ï¿½ï¿½ï¿½ï¿½ DLL Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 
 #include "vnctptd.h"
 
+#  define BOOST_PYTHON_STR_FIX(CharArrayType)                                               \
+template <>																		\
+object::object(																	\
+	CharArrayType const& x												\
+):object_base(object_base_initializer(handle<>( PyBytes_FromString( x))))		\
+{																				\
+}
 
+template <>																		
+object::object(																	
+	const char* x												
+):object_base(object_base_initializer(handle<>( PyBytes_FromString( x))))		
+{																				
+}
+
+namespace boost { namespace python { namespace api{
+
+      // explicit conversion from any C++ object to Python
+	  template <int N>
+		struct Int2Type
+		{
+		typedef char CharType[N] ;
+		};
+	
+BOOST_PYTHON_STR_FIX( Int2Type<1>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<2>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<3>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<4>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<5>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<6>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<7>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<8>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<9>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<10>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<11>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<12>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<13>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<14>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<15>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<16>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<17>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<18>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<19>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<20>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<21>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<22>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<23>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<24>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<25>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<26>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<27>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<28>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<29>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<30>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<31>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<32>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<33>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<34>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<35>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<36>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<37>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<38>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<39>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<40>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<41>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<42>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<43>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<44>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<45>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<46>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<47>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<48>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<49>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<50>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<51>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<52>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<53>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<54>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<55>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<56>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<57>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<58>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<59>::CharType)
+
+BOOST_PYTHON_STR_FIX( Int2Type<61>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<81>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<2049>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<501>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<161>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<101>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<1025>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<257>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<65>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<401>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<1001>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<71>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<129>::CharType)
+}}}
 ///-------------------------------------------------------------------------------------
-///´ÓPython¶ÔÏóµ½C++ÀàÐÍ×ª»»ÓÃµÄº¯Êý
+///ï¿½ï¿½Pythonï¿½ï¿½ï¿½ï¿½ï¿½ï¿½C++ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ÃµÄºï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void getInt(dict d, string key, int *value)
 {
-	if (d.has_key(key))		//¼ì²é×ÖµäÖÐÊÇ·ñ´æÔÚ¸Ã¼üÖµ
+	if (d.has_key(key))		//ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ú¸Ã¼ï¿½Öµ
 	{
-		object o = d[key];	//»ñÈ¡¸Ã¼üÖµ
-		extract<int> x(o);	//´´½¨ÌáÈ¡Æ÷
-		if (x.check())		//Èç¹û¿ÉÒÔÌáÈ¡
+		object o = d[key];	//ï¿½ï¿½È¡ï¿½Ã¼ï¿½Öµ
+		extract<int> x(o);	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½
+		if (x.check())		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡
 		{
-			*value = x();	//¶ÔÄ¿±êÕûÊýÖ¸Õë¸³Öµ
+			*value = x();	//ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë¸³Öµ
 		}
 	}
 }
@@ -44,8 +141,8 @@ void getStr(dict d, string key, char *value)
 		{
 			string s = x();
 			const char *buffer = s.c_str();
-			//¶Ô×Ö·û´®Ö¸Õë¸³Öµ±ØÐëÊ¹ÓÃstrcpy_s, vs2013Ê¹ÓÃstrcpy±àÒëÍ¨²»¹ý
-			//+1Ó¦¸ÃÊÇÒòÎªC++×Ö·û´®µÄ½áÎ²·ûºÅ£¿²»ÊÇÌØ±ðÈ·¶¨£¬²»¼ÓÕâ¸ö1»á³ö´í
+			//ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ö¸ï¿½ë¸³Öµï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½strcpy_s, vs2013Ê¹ï¿½ï¿½strcpyï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½
+			//+1Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªC++ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Ä½ï¿½Î²ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø±ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef _MSC_VER //WIN32
 			strcpy_s(value, strlen(buffer) + 1, buffer);
 #elif __GNUC__
@@ -72,7 +169,7 @@ void getChar(dict d, string key, char *value)
 
 
 ///-------------------------------------------------------------------------------------
-///C++µÄ»Øµ÷º¯Êý½«Êý¾Ý±£´æµ½¶ÓÁÐÖÐ
+///C++ï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void TdApi::OnFrontConnected()
@@ -129,8 +226,21 @@ void TdApi::OnRspAuthenticate(CThostFtdcRspAuthenticateField *pRspAuthenticateFi
 	this->task_queue.push(task);
 };
 
+void print_bytes(std::ostream& out, const char *title, const unsigned char *data, size_t dataLen, bool format = true) {
+    out << title << std::endl;
+    out << std::setfill('0');
+    for(size_t i = 0; i < dataLen; ++i) {
+        out << std::hex << std::setw(2) << (int)data[i];
+        if (format) {
+            out << (((i + 1) % 16 == 0) ? "\n" : " ");
+        }
+    }
+    out << std::endl;
+}
+
 void TdApi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
 {
+	std::cout<<"TdApi::OnRspUserLogin: "<<std::endl;
 	Task task = Task();
 	task.task_name = ONRSPUSERLOGIN;
 
@@ -3147,7 +3257,7 @@ void TdApi::OnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccoun
 
 
 ///-------------------------------------------------------------------------------------
-///¹¤×÷Ïß³Ì´Ó¶ÓÁÐÖÐÈ¡³öÊý¾Ý£¬×ª»¯Îªpython¶ÔÏóºó£¬½øÐÐÍÆËÍ
+///ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì´Ó¶ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½×ªï¿½ï¿½Îªpythonï¿½ï¿½ï¿½ï¿½ï¿½ó£¬½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void TdApi::processTask()
@@ -7761,7 +7871,7 @@ void TdApi::processRtnChangeAccountByBank(Task task)
 
 
 ///-------------------------------------------------------------------------------------
-///Ö÷¶¯º¯Êý
+///ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void TdApi::createFtdcTraderApi(string pszFlowPath)
@@ -7788,7 +7898,7 @@ int TdApi::join()
 
 int TdApi::exit()
 {
-	//¸Ãº¯ÊýÔÚÔ­ÉúAPIÀïÃ»ÓÐ£¬ÓÃÓÚ°²È«ÍË³öAPIÓÃ£¬Ô­ÉúµÄjoinËÆºõ²»Ì«ÎÈ¶¨
+	//ï¿½Ãºï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½APIï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ú°ï¿½È«ï¿½Ë³ï¿½APIï¿½Ã£ï¿½Ô­ï¿½ï¿½ï¿½ï¿½joinï¿½Æºï¿½ï¿½ï¿½Ì«ï¿½È¶ï¿½
 	this->api->RegisterSpi(NULL);
 	this->api->Release();
 	this->api = NULL;
@@ -7808,7 +7918,7 @@ void TdApi::registerFront(string pszFrontAddress)
 
 void TdApi::subscribePrivateTopic(int nType)
 {
-	//¸Ãº¯ÊýÎªÊÖ¶¯±àÐ´
+	//ï¿½Ãºï¿½ï¿½ï¿½Îªï¿½Ö¶ï¿½ï¿½ï¿½Ð´
 	THOST_TE_RESUME_TYPE type;
 
 	switch (nType)
@@ -7837,7 +7947,7 @@ void TdApi::subscribePrivateTopic(int nType)
 
 void TdApi::subscribePublicTopic(int nType)
 {
-	//¸Ãº¯ÊýÎªÊÖ¶¯±àÐ´
+	//ï¿½Ãºï¿½ï¿½ï¿½Îªï¿½Ö¶ï¿½ï¿½ï¿½Ð´
 	THOST_TE_RESUME_TYPE type;
 
 	switch (nType)
@@ -8934,17 +9044,17 @@ int TdApi::reqQueryBankAccountMoneyByFuture(dict req, int nRequestID)
 
 
 ///-------------------------------------------------------------------------------------
-///Boost.Python·â×°
+///Boost.Pythonï¿½ï¿½×°
 ///-------------------------------------------------------------------------------------
 
 struct TdApiWrap : TdApi, wrapper < TdApi >
 {
 	virtual void onFrontConnected()
 	{
-		//ÔÚÏòpython»·¾³ÖÐµ÷ÓÃ»Øµ÷º¯ÊýÍÆËÍÊý¾ÝÇ°£¬ÐèÒªÏÈ»ñÈ¡È«¾ÖËøGIL£¬·ÀÖ¹½âÊÍÆ÷±ÀÀ£
+		//ï¿½ï¿½ï¿½ï¿½pythonï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½Ã»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Òªï¿½È»ï¿½È¡È«ï¿½ï¿½ï¿½ï¿½GILï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		PyLock lock;
 
-		//ÒÔÏÂµÄtry...catch...¿ÉÒÔÊµÏÖ²¶×½python»·¾³ÖÐ´íÎóµÄ¹¦ÄÜ£¬·ÀÖ¹C++Ö±½Ó³öÏÖÔ­ÒòÎ´ÖªµÄ±ÀÀ£
+		//ï¿½ï¿½ï¿½Âµï¿½try...catch...ï¿½ï¿½ï¿½ï¿½Êµï¿½Ö²ï¿½×½pythonï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½Ä¹ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ö¹C++Ö±ï¿½Ó³ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Î´Öªï¿½Ä±ï¿½ï¿½ï¿½
 		try
 		{
 			this->get_override("onFrontConnected")();
@@ -10307,7 +10417,7 @@ struct TdApiWrap : TdApi, wrapper < TdApi >
 
 BOOST_PYTHON_MODULE(vnctptd)
 {
-	PyEval_InitThreads();	//µ¼ÈëÊ±ÔËÐÐ£¬±£Ö¤ÏÈ´´½¨GIL
+	PyEval_InitThreads();	//ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Ö¤ï¿½È´ï¿½ï¿½ï¿½GIL
 
 	class_<TdApiWrap, boost::noncopyable>("TdApi")
 		.def("createFtdcTraderApi", &TdApiWrap::createFtdcTraderApi)

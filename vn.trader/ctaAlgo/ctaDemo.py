@@ -12,8 +12,8 @@
 """
 
 
-from ctaBase import *
-from ctaTemplate import CtaTemplate
+from ctaAlgo.ctaBase import *
+from ctaAlgo.ctaTemplate import CtaTemplate
 
 
 ########################################################################

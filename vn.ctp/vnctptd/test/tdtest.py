@@ -3,23 +3,28 @@
 import sys
 from time import sleep
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui,QtWidgets
 
 from vnctptd import *
+
+import signal
+# 实现Ctrl-c中断recv
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+
 
 #----------------------------------------------------------------------
 def print_dict(d):
     """按照键值打印一个字典"""
     for key,value in d.items():
-        print key + ':' + str(value)
+        print (key + ':' + str(value))
         
         
 #----------------------------------------------------------------------
 def simple_log(func):
     """简单装饰器用于输出函数名"""
     def wrapper(*args, **kw):
-        print ""
-        print str(func.__name__)
+        print ("")
+        print (str(func.__name__))
         return func(*args, **kw)
     return wrapper
 
@@ -37,19 +42,20 @@ class TestTdApi(TdApi):
     @simple_log    
     def onFrontConnected(self):
         """服务器连接"""
+        print("服务器连接")
         pass
     
     #----------------------------------------------------------------------
     @simple_log    
     def onFrontDisconnected(self, n):
         """服务器断开"""
-        print n
+        print (n)
         
     #----------------------------------------------------------------------
     @simple_log    
     def onHeartBeatWarning(self, n):
         """心跳报警"""
-        print n
+        print (n)
     
     #----------------------------------------------------------------------
     @simple_log    
@@ -95,8 +101,8 @@ class TestTdApi(TdApi):
         """查询合约回报"""
         print_dict(data)
         print_dict(error)
-        print n
-        print last
+        print (n)
+        print (last)
         
         
 #----------------------------------------------------------------------
@@ -105,7 +111,7 @@ def main():
     reqid = 0
     
     # 创建Qt应用对象，用于事件循环
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
 
     # 创建API对象，测试通过
     api = TestTdApi()
@@ -118,7 +124,8 @@ def main():
     api.subscribePublicTopic(1)
     
     # 注册前置机地址，测试通过
-    api.registerFront("tcp://qqfz-front1.ctp.shcifco.com:32305")
+    #api.registerFront("tcp://qqfz-front1.ctp.shcifco.com:32305")
+    api.registerFront("tcp://180.168.146.187:10000")
     
     # 初始化api，连接前置机，测试通过
     api.init()
@@ -126,9 +133,9 @@ def main():
     
     # 登陆，测试通过
     loginReq = {}                           # 创建一个空字典
-    loginReq['UserID'] = ''         # 参数作为字典键值的方式传入
-    loginReq['Password'] = ''         # 键名和C++中的结构体成员名对应
-    loginReq['BrokerID'] = ''    
+    loginReq['UserID'] = '080895'         # 参数作为字典键值的方式传入
+    loginReq['Password'] = 'simnowpwd'         # 键名和C++中的结构体成员名对应
+    loginReq['BrokerID'] = '9999'    
     reqid = reqid + 1                       # 请求数必须保持唯一性
     i = api.reqUserLogin(loginReq, reqid)
     sleep(0.5)
@@ -138,12 +145,12 @@ def main():
     #i = api.reqQryInstrument({}, reqid)
     
     ## 查询结算, 测试通过
-    #req = {}
-    #req['BrokerID'] = api.brokerID
-    #req['InvestorID'] = api.userID
-    #reqid = reqid + 1
-    #i = api.reqQrySettlementInfo(req, reqid)
-    #sleep(0.5)
+    req = {}
+    req['BrokerID'] = api.brokerID
+    req['InvestorID'] = api.userID
+    reqid = reqid + 1
+    i = api.reqQrySettlementInfo(req, reqid)
+    sleep(0.5)
     
     ## 确认结算, 测试通过
     #req = {}

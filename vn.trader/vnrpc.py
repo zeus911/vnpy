@@ -8,9 +8,9 @@ import zmq
 from msgpack import packb, unpackb
 from json import dumps, loads
 
-import cPickle
-pDumps = cPickle.dumps
-pLoads = cPickle.loads
+import pickle
+pDumps = pickle.dumps
+pLoads = pickle.loads
 
 
 # 实现Ctrl-c中断recv
@@ -74,6 +74,7 @@ class RpcObject(object):
     #----------------------------------------------------------------------
     def __picklePack(self, data):
         """使用cPickle打包"""
+        #print(data)
         return pDumps(data)
     
     #----------------------------------------------------------------------
@@ -166,6 +167,10 @@ class RpcServer(RpcObject):
             try:
                 func = self.__functions[name]
                 r = func(*args, **kwargs)
+                print(name,args)
+                #print(args)
+                #print(kwargs)
+                #print(r)
                 rep = [True, r]
             except Exception as e:
                 rep = [False, traceback.format_exc()]
@@ -187,7 +192,7 @@ class RpcServer(RpcObject):
         datab = self.pack(data)
         
         # 通过广播socket发送数据
-        self.__socketPUB.send_multipart([topic, datab])
+        self.__socketPUB.send_multipart([topic.encode(), datab])
         
     #----------------------------------------------------------------------
     def register(self, func):
@@ -295,7 +300,7 @@ class RpcClient(RpcObject):
         
         可以使用topic=''来订阅所有的主题
         """
-        self.__socketSUB.setsockopt(zmq.SUBSCRIBE, topic)
+        self.__socketSUB.setsockopt(zmq.SUBSCRIBE, topic.encode())
         
     
 

@@ -1,21 +1,115 @@
-// vnctpmd.cpp : ¶¨Òå DLL Ó¦ÓÃ³ÌÐòµÄµ¼³öº¯Êý¡£
+// vnctpmd.cpp : ï¿½ï¿½ï¿½ï¿½ DLL Ó¦ï¿½Ã³ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 //
 
 #include "vnctpmd.h"
 
+#if 0
+#  define BOOST_PYTHON_STR_FIX(CharArrayType)                                               \
+template <>																		\
+object::object(																	\
+	CharArrayType const& x												\
+):object_base(object_base_initializer(handle<>( PyBytes_FromString( x))))		\
+{																				\
+}
+
+namespace boost { namespace python { namespace api{
+
+      // explicit conversion from any C++ object to Python
+	  template <int N>
+		struct Int2Type
+		{
+		typedef char CharType[N] ;
+		};
+		
+BOOST_PYTHON_STR_FIX( Int2Type<1>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<2>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<3>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<4>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<5>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<6>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<7>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<8>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<9>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<10>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<11>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<12>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<13>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<14>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<15>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<16>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<17>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<18>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<19>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<20>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<21>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<22>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<23>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<24>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<25>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<26>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<27>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<28>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<29>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<30>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<31>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<32>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<33>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<34>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<35>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<36>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<37>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<38>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<39>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<40>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<41>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<42>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<43>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<44>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<45>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<46>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<47>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<48>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<49>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<50>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<51>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<52>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<53>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<54>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<55>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<56>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<57>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<58>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<59>::CharType)
+
+BOOST_PYTHON_STR_FIX( Int2Type<61>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<81>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<2049>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<501>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<161>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<101>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<1025>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<257>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<65>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<401>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<1001>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<71>::CharType)
+BOOST_PYTHON_STR_FIX( Int2Type<129>::CharType)
+}}}
+#endif
+
 ///-------------------------------------------------------------------------------------
-///´ÓPython¶ÔÏóµ½C++ÀàÐÍ×ª»»ÓÃµÄº¯Êý
+///ï¿½ï¿½Pythonï¿½ï¿½ï¿½ï¿½ï¿½ï¿½C++ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ÃµÄºï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void getInt(dict d, string key, int *value)
 {
-	if (d.has_key(key))		//¼ì²é×ÖµäÖÐÊÇ·ñ´æÔÚ¸Ã¼üÖµ
+	if (d.has_key(key))		//ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ú¸Ã¼ï¿½Öµ
 	{
-		object o = d[key];	//»ñÈ¡¸Ã¼üÖµ
-		extract<int> x(o);	//´´½¨ÌáÈ¡Æ÷
-		if (x.check())		//Èç¹û¿ÉÒÔÌáÈ¡
+		object o = d[key];	//ï¿½ï¿½È¡ï¿½Ã¼ï¿½Öµ
+		extract<int> x(o);	//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½
+		if (x.check())		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡
 		{
-			*value = x();	//¶ÔÄ¿±êÕûÊýÖ¸Õë¸³Öµ
+			*value = x();	//ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ë¸³Öµ
 		}
 	}
 };
@@ -43,8 +137,8 @@ void getStr(dict d, string key, char *value)
 		{
 			string s = x();
 			const char *buffer = s.c_str();
-			//¶Ô×Ö·û´®Ö¸Õë¸³Öµ±ØÐëÊ¹ÓÃstrcpy_s, vs2013Ê¹ÓÃstrcpy±àÒëÍ¨²»¹ý
-			//+1Ó¦¸ÃÊÇÒòÎªC++×Ö·û´®µÄ½áÎ²·ûºÅ£¿²»ÊÇÌØ±ðÈ·¶¨£¬²»¼ÓÕâ¸ö1»á³ö´í
+			//ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½Ö¸ï¿½ë¸³Öµï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½strcpy_s, vs2013Ê¹ï¿½ï¿½strcpyï¿½ï¿½ï¿½ï¿½Í¨ï¿½ï¿½ï¿½ï¿½
+			//+1Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ÎªC++ï¿½Ö·ï¿½ï¿½ï¿½ï¿½Ä½ï¿½Î²ï¿½ï¿½ï¿½Å£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø±ï¿½È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 #ifdef _MSC_VER //WIN32
 			strcpy_s(value, strlen(buffer) + 1, buffer);
 #elif __GNUC__
@@ -71,7 +165,7 @@ void getChar(dict d, string key, char *value)
 
 
 ///-------------------------------------------------------------------------------------
-///C++µÄ»Øµ÷º¯Êý½«Êý¾Ý±£´æµ½¶ÓÁÐÖÐ
+///C++ï¿½Ä»Øµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void MdApi::OnFrontConnected()
@@ -342,7 +436,7 @@ void MdApi::OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
 
 
 ///-------------------------------------------------------------------------------------
-///¹¤×÷Ïß³Ì´Ó¶ÓÁÐÖÐÈ¡³öÊý¾Ý£¬×ª»¯Îªpython¶ÔÏóºó£¬½øÐÐÍÆËÍ
+///ï¿½ï¿½ï¿½ï¿½ï¿½ß³Ì´Ó¶ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½Ý£ï¿½×ªï¿½ï¿½Îªpythonï¿½ï¿½ï¿½ï¿½ï¿½ó£¬½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void MdApi::processTask()
@@ -467,7 +561,7 @@ void MdApi::processRspUserLogin(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspUserLogin(data, error, task.task_id, task.task_last);
@@ -483,7 +577,7 @@ void MdApi::processRspUserLogout(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspUserLogout(data, error, task.task_id, task.task_last);
@@ -494,7 +588,7 @@ void MdApi::processRspError(Task task)
 	PyLock lock;
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspError(error, task.task_id, task.task_last);
@@ -509,7 +603,7 @@ void MdApi::processRspSubMarketData(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspSubMarketData(data, error, task.task_id, task.task_last);
@@ -524,7 +618,7 @@ void MdApi::processRspUnSubMarketData(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspUnSubMarketData(data, error, task.task_id, task.task_last);
@@ -539,7 +633,7 @@ void MdApi::processRspSubForQuoteRsp(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspSubForQuoteRsp(data, error, task.task_id, task.task_last);
@@ -554,7 +648,7 @@ void MdApi::processRspUnSubForQuoteRsp(Task task)
 
 	CThostFtdcRspInfoField task_error = any_cast<CThostFtdcRspInfoField>(task.task_error);
 	dict error;
-	error["ErrorMsg"] = task_error.ErrorMsg;
+	error["ErrorMsg"] = object( handle<>( PyBytes_FromString( task_error.ErrorMsg ) ) );
 	error["ErrorID"] = task_error.ErrorID;
 
 	this->onRspUnSubForQuoteRsp(data, error, task.task_id, task.task_last);
@@ -631,7 +725,7 @@ void MdApi::processRtnForQuoteRsp(Task task)
 
 
 ///-------------------------------------------------------------------------------------
-///Ö÷¶¯º¯Êý
+///ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 ///-------------------------------------------------------------------------------------
 
 void MdApi::createFtdcMdApi(string pszFlowPath)
@@ -658,7 +752,7 @@ int MdApi::join()
 
 int MdApi::exit()
 {
-	//¸Ãº¯ÊýÔÚÔ­ÉúAPIÀïÃ»ÓÐ£¬ÓÃÓÚ°²È«ÍË³öAPIÓÃ£¬Ô­ÉúµÄjoinËÆºõ²»Ì«ÎÈ¶¨
+	//ï¿½Ãºï¿½ï¿½ï¿½ï¿½ï¿½Ô­ï¿½ï¿½APIï¿½ï¿½Ã»ï¿½Ð£ï¿½ï¿½ï¿½ï¿½Ú°ï¿½È«ï¿½Ë³ï¿½APIï¿½Ã£ï¿½Ô­ï¿½ï¿½ï¿½ï¿½joinï¿½Æºï¿½ï¿½ï¿½Ì«ï¿½È¶ï¿½
 	this->api->RegisterSpi(NULL);
 	this->api->Release();
 	this->api = NULL;
@@ -739,14 +833,14 @@ int MdApi::reqUserLogout(dict req, int nRequestID)
 
 
 ///-------------------------------------------------------------------------------------
-///Boost.Python·â×°
+///Boost.Pythonï¿½ï¿½×°
 ///-------------------------------------------------------------------------------------
 
 struct MdApiWrap : MdApi, wrapper < MdApi >
 {
 	virtual void onFrontConnected()
 	{
-		//ÒÔÏÂµÄtry...catch...¿ÉÒÔÊµÏÖ²¶×½python»·¾³ÖÐ´íÎóµÄ¹¦ÄÜ£¬·ÀÖ¹C++Ö±½Ó³öÏÖÔ­ÒòÎ´ÖªµÄ±ÀÀ£
+		//ï¿½ï¿½ï¿½Âµï¿½try...catch...ï¿½ï¿½ï¿½ï¿½Êµï¿½Ö²ï¿½×½pythonï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ï¿½ï¿½Ä¹ï¿½ï¿½Ü£ï¿½ï¿½ï¿½Ö¹C++Ö±ï¿½Ó³ï¿½ï¿½ï¿½Ô­ï¿½ï¿½Î´Öªï¿½Ä±ï¿½ï¿½ï¿½
 		try
 		{
 			this->get_override("onFrontConnected")();
@@ -893,7 +987,7 @@ struct MdApiWrap : MdApi, wrapper < MdApi >
 
 BOOST_PYTHON_MODULE(vnctpmd)
 {
-	PyEval_InitThreads();	//µ¼ÈëÊ±ÔËÐÐ£¬±£Ö¤ÏÈ´´½¨GIL
+	PyEval_InitThreads();	//ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ð£ï¿½ï¿½ï¿½Ö¤ï¿½È´ï¿½ï¿½ï¿½GIL
 
 	class_<MdApiWrap, boost::noncopyable>("MdApi")
 		.def("createFtdcMdApi", &MdApiWrap::createFtdcMdApi)
