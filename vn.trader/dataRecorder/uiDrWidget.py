@@ -56,40 +56,40 @@ class DrEngineManager(QtWidgets.QWidget):
         self.setWindowTitle(u'行情数据记录工具')
         
         # 记录合约配置监控
-        tickLabel = QtGui.QLabel(u'Tick记录')
-        self.tickTable = QtGui.QTableWidget()
+        tickLabel = QtWidgets.QLabel(u'Tick记录')
+        self.tickTable = QtWidgets.QTableWidget()
         self.tickTable.setColumnCount(2)
         self.tickTable.verticalHeader().setVisible(False)
-        self.tickTable.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)
-        self.tickTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.tickTable.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.tickTable.horizontalHeader(). setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.tickTable.setAlternatingRowColors(True)
         self.tickTable.setHorizontalHeaderLabels([u'合约代码', u'接口'])
         
-        barLabel = QtGui.QLabel(u'Bar记录')
-        self.barTable = QtGui.QTableWidget()
+        barLabel = QtWidgets.QLabel(u'Bar记录')
+        self.barTable = QtWidgets.QTableWidget()
         self.barTable.setColumnCount(2)
         self.barTable.verticalHeader().setVisible(False)
-        self.barTable.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)
-        self.barTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.barTable.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.barTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.barTable.setAlternatingRowColors(True)        
         self.barTable.setHorizontalHeaderLabels([u'合约代码', u'接口'])
 
-        activeLabel = QtGui.QLabel(u'主力合约')
-        self.activeTable = QtGui.QTableWidget()
+        activeLabel = QtWidgets.QLabel(u'主力合约')
+        self.activeTable = QtWidgets.QTableWidget()
         self.activeTable.setColumnCount(2)
         self.activeTable.verticalHeader().setVisible(False)
-        self.activeTable.setEditTriggers(QtGui.QTableWidget.NoEditTriggers)
-        self.activeTable.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.activeTable.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
+        self.activeTable.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.activeTable.setAlternatingRowColors(True)        
         self.activeTable.setHorizontalHeaderLabels([u'主力代码', u'合约代码'])
 
         # 日志监控
-        self.logMonitor = QtGui.QTextEdit()
+        self.logMonitor = QtWidgets.QTextEdit()
         self.logMonitor.setReadOnly(True)
         self.logMonitor.setMinimumHeight(600)
         
         # 设置布局
-        grid = QtGui.QGridLayout()
+        grid = QtWidgets.QGridLayout()
         
         grid.addWidget(tickLabel, 0, 0)
         grid.addWidget(barLabel, 0, 1)
@@ -98,7 +98,7 @@ class DrEngineManager(QtWidgets.QWidget):
         grid.addWidget(self.barTable, 1, 1)
         grid.addWidget(self.activeTable, 1, 2)        
         
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(grid)
         vbox.addWidget(self.logMonitor)
         self.setLayout(vbox)
