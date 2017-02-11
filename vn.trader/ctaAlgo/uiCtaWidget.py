@@ -42,7 +42,7 @@ class CtaValueMonitor(QtWidgets.QTableWidget):
             
             col = 0
             for k, v in data.items():
-                cell = QtGui.QTableWidgetItem(unicode(v))
+                cell = QtWidgets.QTableWidgetItem(unicode(v))
                 self.keyCellDict[k] = cell
                 self.setItem(0, col, cell)
                 col += 1
@@ -84,26 +84,26 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         self.paramMonitor.setFixedHeight(height)
         self.varMonitor.setFixedHeight(height)
         
-        buttonInit = QtGui.QPushButton(u'初始化')
-        buttonStart = QtGui.QPushButton(u'启动')
-        buttonStop = QtGui.QPushButton(u'停止')
+        buttonInit = QtWidgets.QPushButton(u'初始化')
+        buttonStart = QtWidgets.QPushButton(u'启动')
+        buttonStop = QtWidgets.QPushButton(u'停止')
         buttonInit.clicked.connect(self.init)
         buttonStart.clicked.connect(self.start)
         buttonStop.clicked.connect(self.stop)
         
-        hbox1 = QtGui.QHBoxLayout()     
+        hbox1 = QtWidgets.QHBoxLayout()     
         hbox1.addWidget(buttonInit)
         hbox1.addWidget(buttonStart)
         hbox1.addWidget(buttonStop)
         hbox1.addStretch()
         
-        hbox2 = QtGui.QHBoxLayout()
+        hbox2 = QtWidgets.QHBoxLayout()
         hbox2.addWidget(self.paramMonitor)
         
-        hbox3 = QtGui.QHBoxLayout()
+        hbox3 = QtWidgets.QHBoxLayout()
         hbox3.addWidget(self.varMonitor)
         
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
         vbox.addLayout(hbox3)
@@ -170,11 +170,11 @@ class CtaEngineManager(QtWidgets.QWidget):
         self.setWindowTitle(u'CTA策略')
         
         # 按钮
-        loadButton = QtGui.QPushButton(u'加载策略')
-        initAllButton = QtGui.QPushButton(u'全部初始化')
-        startAllButton = QtGui.QPushButton(u'全部启动')
-        stopAllButton = QtGui.QPushButton(u'全部停止')
-        savePositionButton = QtGui.QPushButton(u'保存持仓')
+        loadButton = QtWidgets.QPushButton(u'加载策略')
+        initAllButton = QtWidgets.QPushButton(u'全部初始化')
+        startAllButton = QtWidgets.QPushButton(u'全部启动')
+        stopAllButton = QtWidgets.QPushButton(u'全部停止')
+        savePositionButton = QtWidgets.QPushButton(u'保存持仓')
         
         loadButton.clicked.connect(self.load)
         initAllButton.clicked.connect(self.initAll)
@@ -183,16 +183,16 @@ class CtaEngineManager(QtWidgets.QWidget):
         savePositionButton.clicked.connect(self.ctaEngine.savePosition)
         
         # 滚动区域，放置所有的CtaStrategyManager
-        self.scrollArea = QtGui.QScrollArea()
+        self.scrollArea = QtWidgets.QScrollArea()
         self.scrollArea.setWidgetResizable(True)
         
         # CTA组件的日志监控
-        self.ctaLogMonitor = QtGui.QTextEdit()
+        self.ctaLogMonitor = QtWidgets.QTextEdit()
         self.ctaLogMonitor.setReadOnly(True)
         self.ctaLogMonitor.setMaximumHeight(200)
         
         # 设置布局
-        hbox2 = QtGui.QHBoxLayout()
+        hbox2 = QtWidgets.QHBoxLayout()
         hbox2.addWidget(loadButton)
         hbox2.addWidget(initAllButton)
         hbox2.addWidget(startAllButton)
@@ -200,7 +200,7 @@ class CtaEngineManager(QtWidgets.QWidget):
         hbox2.addWidget(savePositionButton)
         hbox2.addStretch()
         
-        vbox = QtGui.QVBoxLayout()
+        vbox = QtWidgets.QVBoxLayout()
         vbox.addLayout(hbox2)
         vbox.addWidget(self.scrollArea)
         vbox.addWidget(self.ctaLogMonitor)
@@ -209,8 +209,8 @@ class CtaEngineManager(QtWidgets.QWidget):
     #----------------------------------------------------------------------
     def initStrategyManager(self):
         """初始化策略管理组件界面"""        
-        w = QtGui.QWidget()
-        vbox = QtGui.QVBoxLayout()
+        w = QtWidgets.QWidget()
+        vbox = QtWidgets.QVBoxLayout()
         
         for name in self.ctaEngine.strategyDict.keys():
             strategyManager = CtaStrategyManager(self.ctaEngine, self.eventEngine, name)
