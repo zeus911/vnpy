@@ -285,7 +285,7 @@ class DataEngine(object):
     #----------------------------------------------------------------------
     def getAllContracts(self):
         """查询所有合约对象（返回列表）"""
-        return self.contractDict.values()
+        return list(self.contractDict.values())
     
     #----------------------------------------------------------------------
     def saveContracts(self):
