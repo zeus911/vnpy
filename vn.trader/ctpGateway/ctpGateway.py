@@ -668,8 +668,8 @@ class CtpTdApi(TdApi):
             self.posBufferDict[positionName] = posBuffer
         
         # 更新持仓缓存，并获取VT系统中持仓对象的返回值
-        exchange = self.symbolExchangeDict.get(data[b'InstrumentID'], EXCHANGE_UNKNOWN)
-        size = self.symbolSizeDict.get(data[b'InstrumentID'], 1)
+        exchange = self.symbolExchangeDict.get(data[b'InstrumentID'].decode(), EXCHANGE_UNKNOWN)
+        size = self.symbolSizeDict.get(data[b'InstrumentID'].decode(), 1)
         if exchange == EXCHANGE_SHFE:
             posBuffer.updateShfeBuffer(data, size)
         else:
@@ -744,7 +744,7 @@ class CtpTdApi(TdApi):
         contract = VtContractData()
         contract.gatewayName = self.gatewayName
 
-        contract.symbol = data[b'InstrumentID']
+        contract.symbol = data[b'InstrumentID'].decode()
         contract.exchange = exchangeMapReverse[data[b'ExchangeID'].decode()]
         contract.vtSymbol = contract.symbol #'.'.join([contract.symbol, contract.exchange])
         contract.name = data[b'InstrumentName'].decode('GBK')
@@ -942,11 +942,11 @@ class CtpTdApi(TdApi):
         order.gatewayName = self.gatewayName
         
         # 保存代码和报单号
-        order.symbol = data[b'InstrumentID']
-        order.exchange = exchangeMapReverse[data[b'ExchangeID']]
+        order.symbol = data[b'InstrumentID'].decode()
+        order.exchange = exchangeMapReverse[data[b'ExchangeID'].decode()]
         order.vtSymbol = order.symbol #'.'.join([order.symbol, order.exchange])
         
-        order.orderID = data[b'OrderRef']
+        order.orderID = data[b'OrderRef'].decode()
         # CTP的报单号一致性维护需要基于frontID, sessionID, orderID三个字段
         # 但在本接口设计中，已经考虑了CTP的OrderRef的自增性，避免重复
         # 唯一可能出现OrderRef重复的情况是多处登录并在非常接近的时间内（几乎同时发单）
@@ -977,14 +977,14 @@ class CtpTdApi(TdApi):
         trade.gatewayName = self.gatewayName
         
         # 保存代码和报单号
-        trade.symbol = data[b'InstrumentID']
-        trade.exchange = exchangeMapReverse[data[b'ExchangeID']]
+        trade.symbol = data[b'InstrumentID'].decode()
+        trade.exchange = exchangeMapReverse[data[b'ExchangeID'].decode()]
         trade.vtSymbol = trade.symbol #'.'.join([trade.symbol, trade.exchange])
         
-        trade.tradeID = data[b'TradeID']
+        trade.tradeID = data[b'TradeID'].decode()
         trade.vtTradeID = '.'.join([self.gatewayName, trade.tradeID])
         
-        trade.orderID = data[b'OrderRef']
+        trade.orderID = data[b'OrderRef'].decode()
         trade.vtOrderID = '.'.join([self.gatewayName, trade.orderID])
         
         # 方向
