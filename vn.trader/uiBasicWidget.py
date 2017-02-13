@@ -685,7 +685,9 @@ class TradingWidget(QtWidgets.QFrame):
         self.symbol = ''
         
         # 添加交易接口
-        self.gatewayList.extend(mainEngine.getAllGatewayNames())
+        #self.gatewayList.extend(mainEngine.getAllGatewayNames())
+        # use CTP as default
+        self.gatewayList = mainEngine.getAllGatewayNames() 
 
         self.initUi()
         self.connectSignal()

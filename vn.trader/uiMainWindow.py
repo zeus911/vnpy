@@ -3,6 +3,7 @@
 import psutil
 
 from uiBasicWidget import *
+from uiPriceWidget import *
 from ctaAlgo.uiCtaWidget import CtaEngineManager
 from dataRecorder.uiDrWidget import DrEngineManager
 from riskManager.uiRmWidget import RmEngineManager
@@ -44,6 +45,7 @@ class MainWindow(QtWidgets.QMainWindow):
         widgetPositionM, dockPositionM = self.createDock(PositionMonitor, u'持仓', QtCore.Qt.BottomDockWidgetArea)
         widgetAccountM, dockAccountM = self.createDock(AccountMonitor, u'资金', QtCore.Qt.BottomDockWidgetArea)
         widgetTradingW, dockTradingW = self.createDock(TradingWidget, u'交易', QtCore.Qt.LeftDockWidgetArea)
+        widgetPriceW, dockPriceW = self.createDock(PriceWidget,u'K线',QtCore.Qt.LeftDockWidgetArea)
     
         self.tabifyDockWidget(dockTradeM, dockErrorM)
         self.tabifyDockWidget(dockTradeM, dockLogM)

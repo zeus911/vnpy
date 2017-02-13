@@ -171,8 +171,8 @@ def main():
     eventEngine.start(timer=False)
 
     # 创建客户端
-    reqAddress = 'tcp://localhost:2014'
-    subAddress = 'tcp://localhost:0602'
+    reqAddress = 'tcp://192.168.31.45:2014'
+    subAddress = 'tcp://192.168.31.45:0602'
     client = VtClient(reqAddress, subAddress, eventEngine)
 
     client.subscribeTopic('')
@@ -200,7 +200,7 @@ def main():
     # 初始化主引擎和主窗口对象
     mainEngine = ClientEngine(client, eventEngine)
     mainWindow = MainWindow(mainEngine, mainEngine.eventEngine)
-    mainWindow.showMaximized()
+    mainWindow.showFullScreen()
     
     # 在主线程中启动Qt事件循环
     sys.exit(app.exec_())
