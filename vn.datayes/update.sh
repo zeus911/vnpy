@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo [API]: Prepare to update DATAYES_FUTURE_D1...
-python - << EOF
+python3 - << EOF
 from storage import *
 dc = DBConfig()
 api = PyApi(Config())
@@ -11,7 +11,7 @@ EOF
 echo [API]: DATAYES_FUTURE_D1 updated.
 
 echo [API]: Prepare to update DATAYES_INDEX_D1...
-python - << EOF
+python3 - << EOF
 from storage import *
 dc = DBConfig()
 api = PyApi(Config())
@@ -21,7 +21,7 @@ EOF
 echo [API]: DATAYES_INDEX_D1 updated.
 
 echo [API]: Prepare to update DATAYES_OPTION_D1...
-python - << EOF
+python3 - << EOF
 from storage import *
 dc = DBConfig()
 api = PyApi(Config())
@@ -31,7 +31,7 @@ EOF
 echo [API]: DATAYES_OPTION_D1 updated.
 
 echo [API]: Prepare to update DATAYES_FUND_D1...
-python - << EOF
+python3 - << EOF
 from storage import *
 dc = DBConfig()
 api = PyApi(Config())
@@ -42,7 +42,7 @@ echo [API]: DATAYES_FUND_D1 updated.
 echo [MONGOD]: Update finished.
 
 echo [API]: Prepare to update DATAYES_EQUITY_D1...
-python - << EOF
+python3 - << EOF
 from storage import *
 dc = DBConfig()
 api = PyApi(Config())

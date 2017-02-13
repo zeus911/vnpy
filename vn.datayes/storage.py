@@ -109,9 +109,9 @@ class DBConfig(Config):
 			'dbConfig_head' : self.head,
 			'dbConfig_body' : str(self.body),
 		}
-		print json.dumps(config_view, 
+		print (json.dumps(config_view, 
 						 indent=4, 
-						 sort_keys=True)
+						 sort_keys=True))
 
 #----------------------------------------------------------------------
 # MongoDB Controller class
@@ -210,7 +210,7 @@ class MongodController(object):
 				msg = '[MONGOD]: Unable to configure database; ' + \
 					  'config file is incomplete.'
 				raise VNPAST_ConfigError(msg)
-			except Exception,e:
+			except Exception as e:
 				msg = '[MONGOD]: Unable to configure database; ' + str(e)
 				raise VNPAST_ConfigError(msg)
 
@@ -256,7 +256,7 @@ class MongodController(object):
 						jsonFile.close()
 					#print data
 					return data
-				except Exception,e:
+				except Exception as e:
 					raise e
 			return handle
 		return _md
@@ -329,13 +329,13 @@ class MongodController(object):
 			self._collNames['optTicker'] = self._allOptTickers()
 			self._collNames['idxTicker'] = self._allIdxTickers()
 
-			print '[MONGOD]: Collection names gotten.'
+			print ('[MONGOD]: Collection names gotten.')
 			return 1
 		except AssertionError: 
 			warning = '[MONGOD]: Warning, collection names ' + \
 					  'is an empty list.'
-			print warning
-		except Exception, e:
+			print (warning)
+		except Exception as e:
 			msg = '[MONGOD]: Unable to set collection names; ' + \
 				   str(e)
 			raise VNPAST_DatabaseError(msg)
@@ -367,13 +367,13 @@ class MongodController(object):
 						coll = dbSelf[name]
 						coll.ensure_index([(index, 
 											pymongo.DESCENDING)], unique=True)
-				print '[MONGOD]: MongoDB index set.'
+				print ('[MONGOD]: MongoDB index set.')
 				return 1
 			except KeyError:
 				msg = '[MONGOD]: Unable to set collection indices; ' + \
 					  'infomation in Config.body["dbs"] is incomplete.'
 				raise VNPAST_DatabaseError(msg)
-			except Exception, e:
+			except Exception as e:
 				msg = '[MONGOD]: Unable to set collection indices; ' + str(e)
 				raise VNPAST_DatabaseError(msg)
 
@@ -387,7 +387,7 @@ class MongodController(object):
 		try:
 			db = self._dbs['EQU_D1']['self']
 			self._api.get_equity_D1_mongod(db, start, end, sessionNum)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -419,7 +419,7 @@ class MongodController(object):
 			msg = '[MONGOD]: Cannot map tickers to secIDs; ' + \
 				  'secID.json does not exist.'
 			raise VNPAST_DatabaseError(msg)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -436,7 +436,7 @@ class MongodController(object):
 		try:
 			db = self._dbs['FUT_D1']['self']
 			self._api.get_future_D1_mongod(db, start, end, sessionNum)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -447,7 +447,7 @@ class MongodController(object):
 		try:
 			db = self._dbs['OPT_D1']['self']
 			self._api.get_option_D1_mongod(db, start, end, sessionNum)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -458,7 +458,7 @@ class MongodController(object):
 		try:
 			db = self._dbs['IDX_D1']['self']
 			self._api.get_index_D1_mongod(db, start, end, sessionNum)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -469,7 +469,7 @@ class MongodController(object):
 		try:
 			db = self._dbs['FUD_D1']['self']
 			self._api.get_fund_D1_mongod(db, start, end, sessionNum)
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to download data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -513,7 +513,7 @@ class MongodController(object):
 			target2(db, start, end, sessionNum)
 			return db
 			
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to update data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -591,7 +591,7 @@ class MongodController(object):
 			# then download.
 			self._api.get_equity_D1_mongod(db, start, end, sessionNum)
 			
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Unable to update data; ' + str(e)
 			raise VNPAST_DatabaseError(msg)
 
@@ -639,7 +639,7 @@ class MongodController(object):
 			if output == 'list':
 				return docs[::-1]
 
-		except Exception, e:
+		except Exception as e:
 			msg = '[MONGOD]: Error encountered when fetching data' + \
 				  'from MongoDB; '+ str(e)
 			return -1

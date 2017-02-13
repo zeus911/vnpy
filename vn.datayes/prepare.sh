@@ -12,7 +12,7 @@ fi
 
 echo [vn-past]: Configuration starts.
 
-python - << EOF
+python3 - << EOF
 
 from storage import *
 import pandas as pd
