@@ -1106,7 +1106,7 @@ class ContractMonitor(BasicMonitor):
     def showAllContracts(self):
         """显示所有合约数据"""
         l = self.mainEngine.getAllContracts()
-        d = {'.'.join([contract.exchange, contract.symbol.decode()]):contract for contract in l}
+        d = {'.'.join([contract.exchange, contract.symbol]):contract for contract in l}
         l2 = list(d.keys())
         l2.sort(reverse=True)
 

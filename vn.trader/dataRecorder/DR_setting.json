@@ -1,5 +1,5 @@
 {
-    "working": false,
+    "working": true,
 
     "tick":
     [
@@ -10,7 +10,8 @@
         ["IC1606", "SGIT"],
         ["IC1606", "SGIT"],
         ["600036", "LTS", "SZSE"],
-        ["EUR.USD", "IB", "IDEALPRO", "USD", "外汇"]
+        ["EUR.USD", "IB", "IDEALPRO", "USD", "外汇"],
+        ["rb1705", "SHFE"]
     ],
 
     "bar":
@@ -20,13 +21,15 @@
         ["IH1606", "SGIT"],
         ["IH1606", "SGIT"],
         ["IC1606", "SGIT"],
-        ["IC1606", "SGIT"]
+        ["IC1606", "SGIT"],
+        ["rb1705", "SHFE"]
     ],
 
     "active":
     {
     	"IF0000": "IF1605",
         "IH0000": "IH1605",
-        "IC0000": "IC1605"
+        "IC0000": "IC1605",
+        "rb0000": "rb1705"
     }
 }

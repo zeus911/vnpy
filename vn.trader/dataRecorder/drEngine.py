@@ -205,7 +205,8 @@ class DrEngine(object):
         """运行插入线程"""
         while self.active:
             try:
-                dbName, collectionName, d = self.queue.get(block=True, timeout=1)
+                dbName, collectionName, d = self.queue.get(block=True, timeout=10)
+                print(collectionName, d)
                 self.mainEngine.dbInsert(dbName, collectionName, d)
             except Empty:
                 pass

@@ -313,7 +313,7 @@ class PriceWidget(QtWidgets.QWidget):
 
         # 首先生成datetime.time格式的时间（便于比较）,从字符串时间转化为time格式的时间
         hh, mm, ss = tick.time.split(':')
-        ss,ms,bs = ss.split('.')
+        ss,ms = ss.split('.')
         self.ticktime = time(int(hh), int(mm), int(ss), microsecond=int(ms))
 
         # 计算tick图的相关参数
