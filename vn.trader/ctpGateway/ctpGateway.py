@@ -963,8 +963,8 @@ class CtpTdApi(TdApi):
         order.tradedVolume = data[b'VolumeTraded']
         order.orderTime = data[b'InsertTime'].decode()
         order.cancelTime = data[b'CancelTime'].decode()
-        order.frontID = data[b'FrontID'].decode()
-        order.sessionID = data[b'SessionID'].decode()
+        order.frontID = data[b'FrontID']
+        order.sessionID = data[b'SessionID']
         
         # 推送
         self.gateway.onOrder(order)
