@@ -329,10 +329,11 @@ class CtaEngine(object):
         barData = self.mainEngine.dbQuery(dbName, collectionName, d)
         
         l = []
-        for d in barData:
-            bar = CtaBarData()
-            bar.__dict__ = d
-            l.append(bar)
+        if barData:
+            for d in barData:
+                bar = CtaBarData()
+                bar.__dict__ = d
+                l.append(bar)
         return l
     
     #----------------------------------------------------------------------
@@ -344,10 +345,11 @@ class CtaEngine(object):
         tickData = self.mainEngine.dbQuery(dbName, collectionName, d)
         
         l = []
-        for d in tickData:
-            tick = CtaTickData()
-            tick.__dict__ = d
-            l.append(tick)
+        if tickData:
+            for d in tickData:
+                tick = CtaTickData()
+                tick.__dict__ = d
+                l.append(tick)
         return l    
     
     #----------------------------------------------------------------------
@@ -559,8 +561,9 @@ class CtaEngine(object):
                    'vtSymbol': strategy.vtSymbol}
             posData = self.mainEngine.dbQuery(POSITION_DB_NAME, strategy.className, flt)
             
-            for d in posData:
-                strategy.pos = d['pos']
+            if posData:
+                for d in posData:
+                    strategy.pos = d['pos']
 
 
 ########################################################################
