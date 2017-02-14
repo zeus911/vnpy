@@ -961,8 +961,8 @@ class CtpTdApi(TdApi):
         order.price = data[b'LimitPrice']
         order.totalVolume = data[b'VolumeTotalOriginal']
         order.tradedVolume = data[b'VolumeTraded']
-        order.orderTime = data[b'InsertTime']
-        order.cancelTime = data[b'CancelTime']
+        order.orderTime = data[b'InsertTime'].decode()
+        order.cancelTime = data[b'CancelTime'].decode()
         order.frontID = data[b'FrontID']
         order.sessionID = data[b'SessionID']
         
@@ -996,7 +996,7 @@ class CtpTdApi(TdApi):
         # 价格、报单量等数值
         trade.price = data[b'Price']
         trade.volume = data[b'Volume']
-        trade.tradeTime = data[b'TradeTime']
+        trade.tradeTime = data[b'TradeTime'].decode()
         
         # 推送
         self.gateway.onTrade(trade)
