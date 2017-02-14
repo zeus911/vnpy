@@ -339,7 +339,7 @@ class CtpMdApi(MdApi):
         tick.lastPrice = data['LastPrice']
         tick.volume = data['Volume']
         tick.openInterest = data['OpenInterest']
-        tick.time = '.'.join([data['UpdateTime'], str(data['UpdateMillisec']/100)])
+        tick.time = '.'.join([data['UpdateTime'], str(int(data['UpdateMillisec']/100))])
         
         # 这里由于交易所夜盘时段的交易日数据有误，所以选择本地获取
         #tick.date = data['TradingDay']
