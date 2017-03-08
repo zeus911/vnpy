@@ -81,7 +81,7 @@ def runServer():
     printLog('-'*50)
     printLog(u'vn.trader服务器已启动')
     
-    server.engine.connect('CTP')
+    #server.engine.connect('CTP')
     # 进入主循环
     while True:
         printLog(u'请输入exit来关闭服务器')
