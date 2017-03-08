@@ -9,6 +9,8 @@ from __future__ import division
 
 import time
 import sys
+import os
+import json
 import shelve
 from collections import OrderedDict
 
@@ -22,6 +24,14 @@ from pymongo import MongoClient
 from pymongo.errors import *
 from datetime import datetime, timedelta
 from PyQt5.QtCore import *
+from dataRecorder.drBase import *
+
+# Local Configure
+CONF_SYMBOL = 'rb1705'
+SETTING_FILENAME = 'VT_setting.json'
+path = os.path.abspath(os.path.dirname(__file__))   
+SETTING_FILENAME = os.path.join(path, SETTING_FILENAME)     
+
 
 ########################################################################
 class PriceWidget(QtWidgets.QWidget):
@@ -73,7 +83,7 @@ class PriceWidget(QtWidgets.QWidget):
     initCompleted = False
     # 初始化时读取的历史数据的起始日期(可以选择外部设置)
     startDate = None
-    symbol = 'SR701'
+    symbol = CONF_SYMBOL #'rb1705'
 
     class CandlestickItem(pg.GraphicsObject):
         def __init__(self, data):
@@ -193,7 +203,7 @@ class PriceWidget(QtWidgets.QWidget):
     def initHistoricalData(self,startDate=None):
         """初始历史数据"""
 
-        td = timedelta(days=1)     # 读取3天的历史TICK数据
+        td = timedelta(days=3)     # 读取3天的历史TICK数据
 
         if startDate:
             cx = self.loadTick(self.symbol, startDate-td)
@@ -203,46 +213,8 @@ class PriceWidget(QtWidgets.QWidget):
 
         if cx:
             for data in cx:
-                tick = Tick(data['InstrumentID'])
-
-                tick.openPrice = data['OpenPrice']
-                tick.highPrice = data['HighestPrice']
-                tick.lowPrice = data['LowestPrice']
-                tick.lastPrice = data['LastPrice']
-
-                tick.volume = data['Volume']
-                tick.openInterest = data['OpenInterest']
-
-                tick.upperLimit = data['UpperLimitPrice']
-                tick.lowerLimit = data['LowerLimitPrice']
-
-                tick.time = data['UpdateTime']
-                tick.ms = data['UpdateMillisec']
-
-                tick.bidPrice1 = data['BidPrice1']
-                tick.bidPrice2 = data['BidPrice2']
-                tick.bidPrice3 = data['BidPrice3']
-                tick.bidPrice4 = data['BidPrice4']
-                tick.bidPrice5 = data['BidPrice5']
-
-                tick.askPrice1 = data['AskPrice1']
-                tick.askPrice2 = data['AskPrice2']
-                tick.askPrice3 = data['AskPrice3']
-                tick.askPrice4 = data['AskPrice4']
-                tick.askPrice5 = data['AskPrice5']
-
-                tick.bidVolume1 = data['BidVolume1']
-                tick.bidVolume2 = data['BidVolume2']
-                tick.bidVolume3 = data['BidVolume3']
-                tick.bidVolume4 = data['BidVolume4']
-                tick.bidVolume5 = data['BidVolume5']
-
-                tick.askVolume1 = data['AskVolume1']
-                tick.askVolume2 = data['AskVolume2']
-                tick.askVolume3 = data['AskVolume3']
-                tick.askVolume4 = data['AskVolume4']
-                tick.askVolume5 = data['AskVolume5']
-
+                tick = DrTickData()
+                tick.__dict__ = data
                 self.onTick(tick)
 
         self.initCompleted = True    # 读取历史数据完成
@@ -430,9 +402,11 @@ class PriceWidget(QtWidgets.QWidget):
     def __connectMongo(self):
         """连接MongoDB数据库"""
         try:
-            self.__mongoConnection = MongoClient(u'192.168.31.45')
+            f = open(SETTING_FILENAME)
+            setting = json.load(f)
+            self.__mongoConnection = MongoClient(setting['mongoHost'])
             self.__mongoConnected = True
-            self.__mongoTickDB = self.__mongoConnection['TickDB']
+            self.__mongoTickDB = self.__mongoConnection['VnTrader_Tick_Db']
         except ConnectionFailure:
             pass
 
@@ -449,12 +423,11 @@ class PriceWidget(QtWidgets.QWidget):
         """从MongoDB中读取Tick数据"""
         if self.__mongoConnected:
             collection = self.__mongoTickDB[symbol]
-
             # 如果输入了读取TICK的最后日期
             if endDate:
-                cx = collection.find({'date': {'$gte': startDate, '$lte': endDate}})
+                cx = collection.find({'datetime': {'$gte': startDate, '$lte': endDate}})
             else:
-                cx = collection.find({'date': {'$gte': startDate}})
+                cx = collection.find({'datetime': {'$gte': startDate}})
             return cx
         else:
             return None
