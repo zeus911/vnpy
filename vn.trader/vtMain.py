@@ -4,6 +4,7 @@ import sys
 import os
 import ctypes
 import platform
+import importlib
 
 import vtPath
 from vtEngine import MainEngine
@@ -21,8 +22,9 @@ SETTING_FILENAME = os.path.join(path, SETTING_FILENAME)
 def main():
     """主程序入口"""
     # 重载sys模块，设置默认字符串编码方式为utf8
-    reload(sys)
-    sys.setdefaultencoding('utf8')
+    #reload(sys)
+    #sys.setdefaultencoding('utf8')
+    importlib.reload(sys)
     
     # 设置Windows底部任务栏图标
     if 'Windows' in platform.uname() :
@@ -46,7 +48,7 @@ def main():
     # 初始化主引擎和主窗口对象
     mainEngine = MainEngine()
     mainWindow = MainWindow(mainEngine, mainEngine.eventEngine)
-    mainWindow.showMaximized()
+    mainWindow.showFullScreen()
     
     # 在主线程中启动Qt事件循环
     sys.exit(app.exec_())
