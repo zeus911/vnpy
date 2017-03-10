@@ -11,6 +11,8 @@ import time
 import sys
 import os
 import json
+import numpy as np
+import math
 import shelve
 from collections import OrderedDict
 
@@ -26,9 +28,7 @@ from datetime import datetime, timedelta
 from PyQt5.QtCore import *
 from dataRecorder.drBase import *
 from chan import Chan
-import numpy as np
-import math
-import time
+
 
 from eventEngine import *
 from vtGateway import VtSubscribeReq, VtOrderReq, VtCancelOrderReq, VtLogData
@@ -336,8 +336,8 @@ class UIChan(QObject):
     #----------------------------------------------------------------------
     def initUi(self, startDate=None):
         """初始化界面"""
-        self.initHistoricalData()  # 下载历史数据
         self.initplotTick()  # plotTick初始化
+        self.initHistoricalData()  # 下载历史数据
 
     #----------------------------------------------------------------------
     def initplotTick(self):
@@ -383,13 +383,13 @@ class UIChan(QObject):
                 macdPositive.append(0)
                 macdNegetive.append(i)
                 
-        curve0 = p2.plot(x = list(range(len(self.listBar))),y = np.zeros(len(self.listBar)))
-        curve1 = p2.plot(x = list(range(len(self.listBar))),y = macdPositive, pen = 'w')
-        curve2 = p2.plot(x = list(range(len(self.listBar))),y = macdNegetive, pen = 'w')
-        itemFill1 = pg.FillBetweenItem(curve0,curve1,pg.mkBrush('r'))
-        itemFill2 = pg.FillBetweenItem(curve0,curve2,pg.mkBrush('g'))
-        p2.addItem(itemFill1)
-        p2.addItem(itemFill2)
+        self.curve0 = p2.plot(x = list(range(len(self.listBar))),y = np.zeros(len(self.listBar)))
+        self.curve1 = p2.plot(x = list(range(len(self.listBar))),y = macdPositive, pen = 'w')
+        self.curve2 = p2.plot(x = list(range(len(self.listBar))),y = macdNegetive, pen = 'w')
+        self.itemFill1 = pg.FillBetweenItem(self.curve0,self.curve1,pg.mkBrush('r'))
+        self.itemFill2 = pg.FillBetweenItem(self.curve0,self.curve2,pg.mkBrush('g'))
+        p2.addItem(self.itemFill1)
+        p2.addItem(self.itemFill2)
 
 
         self.itemK = self.CandlestickItem()
@@ -475,13 +475,15 @@ class UIChan(QObject):
         self.proxy = pg.SignalProxy(p1.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
         self.win = win
         self.p1 = p1
+        self.p2 = p2
         self.chan = chan
+        self.axis = axis
 
     #----------------------------------------------------------------------
     def initHistoricalData(self,startDate=None):
         """初始历史数据"""
 
-        td = timedelta(days=23)     # 读取3天的历史TICK数据
+        td = timedelta(days=20)     # 读取3天的历史TICK数据
 
         if startDate:
             cx = self.loadTick(self.symbol, startDate-td)
@@ -565,31 +567,11 @@ class UIChan(QObject):
         else:
             # 如果是当前一分钟内的数据
             if self.ticktime.minute == self.barTime.minute:
-                if self.ticktime.second >= 30 and self.barTime.second < 30: # 判断30秒周期K线
-                    # 先保存K线收盘价
-                    self.num += 1
-                    self.onBar(self.num, self.barOpen, self.barClose, self.barLow, self.barHigh, self.barOpenInterest)
-                    # 初始化新的K线数据
-                    self.barOpen = tick.lastPrice
-                    self.barHigh = tick.lastPrice
-                    self.barLow = tick.lastPrice
-                    self.barClose = tick.lastPrice
-                    self.barTime = self.ticktime
-                    self.barOpenInterest = tick.openInterest
                 # 汇总TICK生成K线
                 self.barHigh = max(self.barHigh, tick.lastPrice)
                 self.barLow = min(self.barLow, tick.lastPrice)
                 self.barClose = tick.lastPrice
                 self.barTime = self.ticktime
-                self.listBar.pop()
-                self.listfastEMA.pop()
-                self.listslowEMA.pop()
-                self.listOpen.pop()
-                self.listClose.pop()
-                self.listHigh.pop()
-                self.listLow.pop()
-                self.listOpenInterest.pop()
-                self.onBar(self.num, self.barOpen, self.barClose, self.barLow, self.barHigh, self.barOpenInterest)
             # 如果是新一分钟的数据
             else:
                 # 先保存K线收盘价
@@ -626,31 +608,60 @@ class UIChan(QObject):
         # 调用画图函数
         #self.plotTick()      # tick图
         self.plotKline()     # K线图
+        self.plotMACD()     #macd
         #self.plotTendency()  # K线副图，持仓量
     #----------------------------------------------------------------------
     def plotKline(self):
         """K线图"""
-        if self.initCompleted:
-            self.chan.append(self.barOpen,self.barHigh,self.barLow,self.barClose,self.barOpenInterest, self.barTime)
-            if(self.chan.length>26):
-                self.chan.barsMerge()
-                self.chan.findFenxing()
-                self.chan.findBi()
-                self.chan.findLines()
-                self.chan.findZhongshus()
-                self.chan.calculate_ta()
-                self.chan.findBiZhongshus()
-                self.chan.macdSeparate()
-                self.chan.findTrendLines()
-                self.chan.decisionBi()
+        #if self.initCompleted:
+        self.chan.append(self.barOpen,self.barHigh,self.barLow,self.barClose,self.barOpenInterest, self.barTime)
+        if(self.chan.length>26):
+            self.chan.barsMerge()
+            self.chan.findFenxing()
+            self.chan.findBi()
+            self.chan.findLines()
+            self.chan.findZhongshus()
+            self.chan.calculate_ta()
+            self.chan.findBiZhongshus()
+            self.chan.macdSeparate()
+            self.chan.findTrendLines()
+            self.chan.decisionBi()
 
-                self.itemK.set_data(self.listBar)
-                self.itemBi.set_data(self.chan.bis)
-                #self.itemLine.set_data(self.chan.lines)
-                #self.itemZhongshu.set_data(self.chan.biZhongshus)
+            self.itemK.set_data(self.listBar)
+            self.itemBi.set_data(self.chan.bis)
+            self.itemLine.set_data(self.chan.lines)
+            self.itemZhongshu.set_data(self.chan.biZhongshus)
 
-                app = QtGui.QApplication.instance()
-                app.processEvents()  ## force complete redraw for every plot
+            app = QtGui.QApplication.instance()
+            app.processEvents()  ## force complete redraw for every plot
+
+    def plotMACD(self):
+        """K线图"""
+        #if self.initCompleted:
+        if(self.chan.length>26):
+            self.p2.clear()
+            self.p2.plot(x = list(range(len(self.listBar))),y = chan.diff,pen = 'w')
+            self.p2.plot(x = list(range(len(self.listBar))),y = chan.dea,pen = 'y')
+            hLine = pg.InfiniteLine(angle=0, movable=False)
+            hLine.setPos(0)
+            self.p2.addItem(hLine, ignoreBounds=True)
+            macdPositive = []
+            macdNegetive = []
+            for i in self.chan.macd:
+                if i>=0:
+                    macdPositive.append(i)
+                    macdNegetive.append(0)
+                else:
+                    macdPositive.append(0)
+                    macdNegetive.append(i)
+                    
+            self.curve0 = self.p2.plot(x = list(range(len(self.listBar))),y = np.zeros(len(self.listBar)))
+            self.curve1 = self.p2.plot(x = list(range(len(self.listBar))),y = macdPositive, pen = 'w')
+            self.curve2 = self.p2.plot(x = list(range(len(self.listBar))),y = macdNegetive, pen = 'w')
+            self.itemFill1 = pg.FillBetweenItem(self.curve0,self.curve1,pg.mkBrush('r'))
+            self.itemFill2 = pg.FillBetweenItem(self.curve0,self.curve2,pg.mkBrush('g'))
+            self.p2.addItem(self.itemFill1)
+            self.p2.addItem(self.itemFill2)
 
     #----------------------------------------------------------------------
     def __connectMongo(self):
