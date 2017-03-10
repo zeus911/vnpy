@@ -128,6 +128,16 @@ class Chan(object):
         self.macdBenchmarkEnd = []
         self.macdBenchmarkLastStart = []
         self.macdBenchmarkLastEnd = []
+
+        #macd
+        self.dea = []
+        self.diff = []
+        self.macd = []
+
+        #
+        self.bis = []
+        self.lines = []
+        self.biZhongshus = []
         
         self.trendLineRecord = []
 
@@ -530,6 +540,10 @@ class Chan(object):
 #         delIndex = list(delIndex)
 #         self.fenxings = [i for j, i in enumerate(self.fenxings) if j not in delIndex]
         
+        #check
+        if(len(self.fenxings)==0):
+            return
+
         #先对分型进行处理
         lastItem = self.fenxings[0]
         for item in self.fenxings[1:]:   #对拷贝进行循环
@@ -617,13 +631,18 @@ class Chan(object):
                     
 
         #完成最后一笔
-        if bis[-1].biType == 'up':
-            bis.append(bi(bis[-1].barIndex2,len(self.chanBars)-1,'down'))
-        else:
-            bis.append(bi(bis[-1].barIndex2,len(self.chanBars)-1,'up'))
-        self.bis = bis
+        if(len(bis)):
+            if bis[-1].biType == 'up':
+                bis.append(bi(bis[-1].barIndex2,len(self.chanBars)-1,'down'))
+            else:
+                bis.append(bi(bis[-1].barIndex2,len(self.chanBars)-1,'up'))
+            self.bis = bis
         
     def findLines(self):
+        #check
+        if(len(self.bis)==0):
+            return
+
         lines = []
         
         startType = self.bis[0].biType
@@ -1241,6 +1260,9 @@ class Chan(object):
     
                 
     def decisionBi(self):
+        #check
+        if(len(self.biZhongshus)<2):
+            return
         inZhongshuLines = []
         for z in self.biZhongshus:
             inZhongshuLines += z.linesIncluded

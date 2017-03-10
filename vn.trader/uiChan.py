@@ -30,6 +30,10 @@ import numpy as np
 import math
 import time
 
+from eventEngine import *
+from vtGateway import VtSubscribeReq, VtOrderReq, VtCancelOrderReq, VtLogData
+from vtConstant import *
+
 # Local Configure
 CONF_SYMBOL = 'rb1705'
 SETTING_FILENAME = 'VT_setting.json'
@@ -81,6 +85,9 @@ class UIChan(QObject):
     listLow = []
     listOpen = []
     listOpenInterest = []
+    listTimes = [] #暂时以序列号代替
+
+    chan = None
 
     # 是否完成了历史数据的读取
     initCompleted = False
@@ -92,7 +99,6 @@ class UIChan(QObject):
     # Create a subclass of GraphicsObject.
     # The only required methods are paint() and boundingRect()
     # (see QGraphicsItem documentation)
-
 
     class CandlestickItem(pg.GraphicsObject):
         def __init__(self):
@@ -111,7 +117,8 @@ class UIChan(QObject):
             self.picture = QtGui.QPicture()
             p = QtGui.QPainter(self.picture)
             p.setPen(pg.mkPen('w'))
-            w = (self.data[1][0] - self.data[0][0]) / 3.
+            #w = (self.data[1][0] - self.data[0][0]) / 3.
+            w = 1/3.
             for (t, open, close, min, max) in self.data:
                 p.drawLine(QtCore.QPointF(t, min), QtCore.QPointF(t, max))
                 if open > close:
@@ -299,9 +306,11 @@ class UIChan(QObject):
                 if vs in self.x_values:
                     if rng >= 100:
                         
-                        vstr = self.x_strings[np.abs(self.x_values-vs).argmin()].strftime('%Y%m%d')
+                        #vstr = self.x_strings[np.abs(self.x_values-vs).argmin()].strftime('%Y%m%d')
+                        vstr = ""
                     else:
-                        vstr = self.x_strings[np.abs(self.x_values-vs).argmin()].strftime('%Y%m%d,%H:%M')
+                        #vstr = self.x_strings[np.abs(self.x_values-vs).argmin()].strftime('%Y%m%d,%H:%M')
+                        vstr = ""
                 else:
                     vstr = ""
                 strings.append(vstr)         
@@ -327,46 +336,19 @@ class UIChan(QObject):
     #----------------------------------------------------------------------
     def initUi(self, startDate=None):
         """初始化界面"""
-        self.initplotTick()  # plotTick初始化
         self.initHistoricalData()  # 下载历史数据
+        self.initplotTick()  # plotTick初始化
 
     #----------------------------------------------------------------------
     def initplotTick(self):
         """"""
-
-        import pandas as pd
-
-        class ValuesParser:
-            def __init__(self,dataframe):
-                self.Data = [data['open'].tolist(),data['high'].tolist(),data['low'].tolist(),data['close'].tolist(),data['volume'].tolist()]
-                self.Times= data.index.tolist()
-
-
-        data = pd.DataFrame.from_csv('rb1705_year.csv')[10000:11100]
-        data = ValuesParser(data)
-
-        global dataToNow
-        #dataToNow = w.wst(code, "last", data.Times[-1], nowTime, "")
-        dataToNow = []
-            
-            
-        quotes = []
-        for i in range(len(data.Times)):
-            quotes.append([i, data.Data[0][i], data.Data[3][i],
-                        data.Data[2][i], data.Data[1][i]])
-            
         global chan
-        #chan = Chan(data.Data[0], data.Data[1], data.Data[2],data.Data[3], data.Data[4], data.Times)
         chan = Chan([],[],[],[],[],[])
 
-        print(len(data.Times))
-        start = 1000
-        for tick in range(0, start):
-            chan.append(data.Data[0][tick], data.Data[1][tick], data.Data[2][tick], data.Data[3][tick], data.Data[4][tick], data.Times[tick])
-        
+        for index in range(0,len(self.listBar)):
+            chan.append(self.listOpen[index],self.listHigh[index],self.listLow[index],self.listClose[index],self.listOpenInterest[index], self.listTimes[index])
 
-        for tick in range(start, len(data.Times)):
-            chan.append(data.Data[0][tick], data.Data[1][tick], data.Data[2][tick], data.Data[3][tick], data.Data[4][tick], data.Times[tick])
+        if(chan.length>26):
             chan.barsMerge()
             chan.findFenxing()
             chan.findBi()
@@ -378,23 +360,16 @@ class UIChan(QObject):
             chan.findTrendLines()
             chan.decisionBi()
 
-            
-        #chan.plotBuySell()
-        chan.plotBeichi()
-        #chan.plotBiZhongshu()
-        #plt.show()
-        print(len(chan.dingbeichi))
-
         win = pg.GraphicsWindow()
         win.setWindowTitle('行情+缠论')
         label = pg.LabelItem(justify = "center")
         win.addItem(label)
-        axis = self.DateAxis(data.Times,orientation='bottom')
+        axis = self.DateAxis(self.listTimes,orientation='bottom')
         p1 = win.addPlot(row=1, col=0,axisItems = {'bottom':axis})
         p2 = win.addPlot(row=2, col=0,axisItems = {'bottom':axis})
         p2.setXLink(p1)
-        p2.plot(x = list(range(len(data.Times))),y = chan.diff,pen = 'w')
-        p2.plot(x = list(range(len(data.Times))),y = chan.dea,pen = 'y')
+        p2.plot(x = list(range(len(self.listBar))),y = chan.diff,pen = 'w')
+        p2.plot(x = list(range(len(self.listBar))),y = chan.dea,pen = 'y')
         hLine = pg.InfiniteLine(angle=0, movable=False)
         hLine.setPos(0)
         p2.addItem(hLine, ignoreBounds=True)
@@ -408,50 +383,44 @@ class UIChan(QObject):
                 macdPositive.append(0)
                 macdNegetive.append(i)
                 
-        curve0 = p2.plot(x = list(range(len(data.Times))),y = np.zeros(len(data.Times)))
-        curve1 = p2.plot(x = list(range(len(data.Times))),y = macdPositive, pen = 'w')
-        curve2 = p2.plot(x = list(range(len(data.Times))),y = macdNegetive, pen = 'w')
+        curve0 = p2.plot(x = list(range(len(self.listBar))),y = np.zeros(len(self.listBar)))
+        curve1 = p2.plot(x = list(range(len(self.listBar))),y = macdPositive, pen = 'w')
+        curve2 = p2.plot(x = list(range(len(self.listBar))),y = macdNegetive, pen = 'w')
         itemFill1 = pg.FillBetweenItem(curve0,curve1,pg.mkBrush('r'))
         itemFill2 = pg.FillBetweenItem(curve0,curve2,pg.mkBrush('g'))
         p2.addItem(itemFill1)
         p2.addItem(itemFill2)
 
-        #win.addItem(label)
-        #text = pg.TextItem('test',anchor=(0,1))
-        # p1.addItem(text)
 
-
-
-
-        itemK = self.CandlestickItem()
-        itemK.set_data(quotes)
-        itemBi = self.BisItem()
-        itemBi.set_data(chan.bis)
-        itemLine = self.LinesItem()
-        itemLine.set_data(chan.lines)
-        itemZhongshu = self.ZhongshusItem()
+        self.itemK = self.CandlestickItem()
+        self.itemK.set_data(self.listBar)
+        self.itemBi = self.BisItem()
+        self.itemBi.set_data(chan.bis)
+        self.itemLine = self.LinesItem()
+        self.itemLine.set_data(chan.lines)
+        self.itemZhongshu = self.ZhongshusItem()
         #itemZhongshu.set_data(chan.zhongshus)
-        itemZhongshu.set_data(chan.biZhongshus)
+        self.itemZhongshu.set_data(chan.biZhongshus)
 
-        itemDiBeiChi = self.BeiChiItem()
-        itemDiBeiChi.set_data(chan.dibeichi)
-        itemDingBeiChi = self.BeiChiItem()
-        itemDingBeiChi.set_data(chan.dingbeichiLine)
-        itemTrendDiBeiChi = self.BeiChiItem()
-        itemTrendDiBeiChi.set_data(chan.trendDibeichi)
-        itemTrendDingBeiChi = self.BeiChiItem()
-        itemTrendDingBeiChi.set_data(chan.trendDingbeichi)
+        # self.itemDiBeiChi = self.BeiChiItem()
+        # self.itemDiBeiChi.set_data(chan.dibeichi)
+        # self.itemDingBeiChi = self.BeiChiItem()
+        # self.itemDingBeiChi.set_data(chan.dingbeichiLine)
+        # self.itemTrendDiBeiChi = self.BeiChiItem()
+        # self.itemTrendDiBeiChi.set_data(chan.trendDibeichi)
+        # self.itemTrendDingBeiChi = self.BeiChiItem()
+        # self.itemTrendDingBeiChi.set_data(chan.trendDingbeichi)
 
 
         p1.plot()
-        p1.addItem(itemK)
-        p1.addItem(itemBi)
-        p1.addItem(itemLine)
-        p1.addItem(itemZhongshu)
-        p1.addItem(itemDiBeiChi)
-        p1.addItem(itemDingBeiChi)
-        p1.addItem(itemTrendDiBeiChi)
-        p1.addItem(itemTrendDingBeiChi)
+        p1.addItem(self.itemK)
+        p1.addItem(self.itemBi)
+        p1.addItem(self.itemLine)
+        p1.addItem(self.itemZhongshu)
+        # p1.addItem(self.itemDiBeiChi)
+        # p1.addItem(self.itemDingBeiChi)
+        # p1.addItem(self.itemTrendDiBeiChi)
+        # p1.addItem(self.itemTrendDingBeiChi)
         p1.showGrid(x=True,y=True)
 
         #p1.setWindowTitle('pyqtgraph example: customGraphicsItem')
@@ -468,13 +437,12 @@ class UIChan(QObject):
 
         def mouseMoved(evt):
             pos = evt[0]  # using signal proxy turns original arguments into a tuple
-            print("..")
             if p1.sceneBoundingRect().contains(pos):
                 mousePoint = vb1.mapSceneToView(pos)
                 index = int(mousePoint.x())
-                if index > 0 and index < len(quotes):
-                    label.setText("<span style='font-size: 12pt'>date=%s,   <span style='color: red'>open=%0.01f</span>,   <span style='color: green'>close=%0.01f\n, high = %0.01f, low = %0.01f</span>" %
-                                (data.Times[index].strftime('%Y%m%d,%H:%M'), quotes[index][1], quotes[index][2], quotes[index][3], quotes[index][4]))
+                if index > 0 and index < len(self.listBar):
+                    label.setText("<span style='font-size: 12pt'>date=%d,   <span style='color: red'>open=%0.01f</span>,   <span style='color: green'>close=%0.01f\n, high = %0.01f, low = %0.01f</span>" %
+                                (self.listTimes[index], self.listBar[index][1], self.listBar[index][2], self.listBar[index][3], self.listBar[index][4]))
                 vLine.setPos(mousePoint.x())
                 hLine.setPos(mousePoint.y())
             setYRange()
@@ -489,28 +457,31 @@ class UIChan(QObject):
             xmax = max(0,xmax-xmin)
             xmin = max(0,xmin)
 
-            xmin = min(xmin,len(data.Times))
-            xmax = min(xmax,len(data.Times))
+            xmin = min(xmin,len(self.listBar))
+            xmax = min(xmax,len(self.listBar))
             xmax = max(xmin,xmax)
             if(xmin==xmax):
                 return
 
-            highBound1 = max(data.Data[1][xmin:xmax])
-            lowBound1 = min(data.Data[2][xmin:xmax])
-            p1.setRange(yRange=(lowBound1,highBound1))
-            highBound2 = max(chan.diff[xmin:xmax])
-            lowBound2 = min(chan.diff[xmin:xmax])
-            p2.setRange(yRange=(lowBound2,highBound2))
+            if(len(self.listBar)):
+                highBound1 = max(self.listHigh[xmin:xmax])
+                lowBound1 = min(self.listLow[xmin:xmax])
+                p1.setRange(yRange=(lowBound1,highBound1))
+            if(len(self.chan.diff)):
+                highBound2 = max(self.chan.diff[xmin:xmax])
+                lowBound2 = min(self.chan.diff[xmin:xmax])
+                p2.setRange(yRange=(lowBound2,highBound2))
         
         self.proxy = pg.SignalProxy(p1.scene().sigMouseMoved, rateLimit=60, slot=mouseMoved)
         self.win = win
         self.p1 = p1
+        self.chan = chan
 
     #----------------------------------------------------------------------
     def initHistoricalData(self,startDate=None):
         """初始历史数据"""
 
-        td = timedelta(days=3)     # 读取3天的历史TICK数据
+        td = timedelta(days=23)     # 读取3天的历史TICK数据
 
         if startDate:
             cx = self.loadTick(self.symbol, startDate-td)
@@ -635,12 +606,13 @@ class UIChan(QObject):
     #----------------------------------------------------------------------
     def onBar(self, n, o, c, l, h, oi):
         self.listBar.append((n, o, c, l, h))
+        self.listTimes.append(n)
         self.listOpen.append(o)
         self.listClose.append(c)
         self.listHigh.append(h)
         self.listLow.append(l)
         self.listOpenInterest.append(oi)
-
+        
         #计算K线图EMA均线
         if self.fastEMA:
             self.fastEMA = c*self.EMAFastAlpha + self.fastEMA*(1-self.EMAFastAlpha)
@@ -652,9 +624,33 @@ class UIChan(QObject):
         self.listslowEMA.append(self.slowEMA)
 
         # 调用画图函数
-        self.plotTick()      # tick图
+        #self.plotTick()      # tick图
         self.plotKline()     # K线图
-        self.plotTendency()  # K线副图，持仓量
+        #self.plotTendency()  # K线副图，持仓量
+    #----------------------------------------------------------------------
+    def plotKline(self):
+        """K线图"""
+        if self.initCompleted:
+            self.chan.append(self.barOpen,self.barHigh,self.barLow,self.barClose,self.barOpenInterest, self.barTime)
+            if(self.chan.length>26):
+                self.chan.barsMerge()
+                self.chan.findFenxing()
+                self.chan.findBi()
+                self.chan.findLines()
+                self.chan.findZhongshus()
+                self.chan.calculate_ta()
+                self.chan.findBiZhongshus()
+                self.chan.macdSeparate()
+                self.chan.findTrendLines()
+                self.chan.decisionBi()
+
+                self.itemK.set_data(self.listBar)
+                self.itemBi.set_data(self.chan.bis)
+                #self.itemLine.set_data(self.chan.lines)
+                #self.itemZhongshu.set_data(self.chan.biZhongshus)
+
+                app = QtGui.QApplication.instance()
+                app.processEvents()  ## force complete redraw for every plot
 
     #----------------------------------------------------------------------
     def __connectMongo(self):
@@ -696,6 +692,42 @@ class UIChan(QObject):
         self.signal.connect(self.updateMarketData)
         self.__eventEngine.register(EVENT_TICK, self.signal.emit)
 
+    #----------------------------------------------------------------------
+    def updateSymbol(self):
+        """合约变化"""
+        # 读取组件数据
+        symbol = self.symbol
+        exchange = None
+        vtSymbol = None
+        # 查询合约
+        if exchange:
+            vtSymbol = '.'.join([symbol, exchange])
+            contract = self.__mainEngine.getContract(vtSymbol)
+        else:
+            vtSymbol = symbol
+            contract = self.__mainEngine.getContract(symbol)   
+        
+        if contract:
+            vtSymbol = contract.vtSymbol
+            gatewayName = contract.gatewayName
+            print(contract.name)
+            exchange = contract.exchange    # 保证有交易所代码
+
+        # 重新注册事件监听
+        self.__eventEngine.unregister(EVENT_TICK + symbol, self.signal.emit)
+        self.__eventEngine.register(EVENT_TICK + vtSymbol, self.signal.emit)
+
+        # 订阅合约
+        req = VtSubscribeReq()
+        req.symbol = symbol
+        req.exchange = exchange
+        #req.currency = currency
+        req.productClass = PRODUCT_FUTURES
+
+        self.__mainEngine.subscribe(req, gatewayName)
+
+        # 更新组件当前交易的合约
+        self.symbol = vtSymbol
 
 
 import sys
@@ -875,10 +907,18 @@ def main():
     except RuntimeError:
         app = QtGui.QApplication.instance()
 
+
+    """增加连接功能"""
+    gatewayName = "CTP"
+    mainEngine.connect(gatewayName)
+
+    """subscribe symbol"""
+
     chan = UIChan(mainEngine,mainEngine.eventEngine)
+    chan.updateSymbol()
     mw = chan.win
-    
     mw.show()
+        
     app.exec_()
 
 
