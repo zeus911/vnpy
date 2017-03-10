@@ -1261,7 +1261,7 @@ class Chan(object):
                 
     def decisionBi(self):
         #check
-        if(len(self.biZhongshus)<2):
+        if(len(self.biZhongshus)<3):
             return
         inZhongshuLines = []
         for z in self.biZhongshus:
