@@ -41,7 +41,7 @@ path = os.path.abspath(os.path.dirname(__file__))
 SETTING_FILENAME = os.path.join(path, SETTING_FILENAME)     
 
 ########################################################################
-class UIChan(QObject):
+class UIChan(QtWidgets.QWidget):
     """用于显示价格走势图"""
     signal = QtCore.pyqtSignal(type(Event()))
 
@@ -339,6 +339,14 @@ class UIChan(QObject):
         self.initplotTick()  # plotTick初始化
         self.initHistoricalData()  # 下载历史数据
 
+    def plotA(self):
+        ''' plot some random stuff '''
+        data = [random.random() for i in range(25)]
+        ax = self.figure.add_subplot(111)
+        ax.hold(False)
+        ax.plot(data, '*-')
+        self.canvas.draw()
+
     #----------------------------------------------------------------------
     def initplotTick(self):
         """"""
@@ -364,6 +372,7 @@ class UIChan(QObject):
         win.setWindowTitle('行情+缠论')
         label = pg.LabelItem(justify = "center")
         win.addItem(label)
+
         axis = self.DateAxis(self.listTimes,orientation='bottom')
         p1 = win.addPlot(row=1, col=0,axisItems = {'bottom':axis})
         p2 = win.addPlot(row=2, col=0,axisItems = {'bottom':axis})
@@ -483,7 +492,7 @@ class UIChan(QObject):
     def initHistoricalData(self,startDate=None):
         """初始历史数据"""
 
-        td = timedelta(days=20)     # 读取3天的历史TICK数据
+        td = timedelta(days=3)     # 读取3天的历史TICK数据
 
         if startDate:
             cx = self.loadTick(self.symbol, startDate-td)
@@ -566,7 +575,8 @@ class UIChan(QObject):
             self.onBar(self.num, self.barOpen, self.barClose, self.barLow, self.barHigh, self.barOpenInterest)
         else:
             # 如果是当前一分钟内的数据
-            if self.ticktime.minute == self.barTime.minute:
+            #if self.ticktime.minute == self.barTime.minute:
+            if self.ticktime.second%20!=0:
                 # 汇总TICK生成K线
                 self.barHigh = max(self.barHigh, tick.lastPrice)
                 self.barLow = min(self.barLow, tick.lastPrice)
@@ -610,6 +620,9 @@ class UIChan(QObject):
         self.plotKline()     # K线图
         self.plotMACD()     #macd
         #self.plotTendency()  # K线副图，持仓量
+
+        app = QtGui.QApplication.instance()
+        app.processEvents()  ## force complete redraw for every plot
     #----------------------------------------------------------------------
     def plotKline(self):
         """K线图"""
@@ -627,13 +640,10 @@ class UIChan(QObject):
             self.chan.findTrendLines()
             self.chan.decisionBi()
 
-            self.itemK.set_data(self.listBar)
-            self.itemBi.set_data(self.chan.bis)
-            self.itemLine.set_data(self.chan.lines)
-            self.itemZhongshu.set_data(self.chan.biZhongshus)
-
-            app = QtGui.QApplication.instance()
-            app.processEvents()  ## force complete redraw for every plot
+        self.itemK.set_data(self.listBar)
+        self.itemBi.set_data(self.chan.bis)
+        self.itemLine.set_data(self.chan.lines)
+        self.itemZhongshu.set_data(self.chan.biZhongshus)
 
     def plotMACD(self):
         """K线图"""

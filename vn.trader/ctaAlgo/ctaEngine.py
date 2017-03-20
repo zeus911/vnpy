@@ -23,7 +23,7 @@ from collections import OrderedDict
 from datetime import datetime, timedelta
 
 from ctaAlgo.ctaBase import *
-from ctaAlgo.ctaSetting import STRATEGY_CLASS
+from ctaAlgo.strategy import STRATEGY_CLASS
 from eventEngine import *
 from vtConstant import *
 from vtGateway import VtSubscribeReq, VtOrderReq, VtCancelOrderReq, VtLogData
