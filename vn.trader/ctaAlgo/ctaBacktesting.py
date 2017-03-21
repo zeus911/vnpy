@@ -121,6 +121,7 @@ class BacktestingEngine(object):
     def loadHistoryData(self):
         """载入历史数据"""
         host, port, logging = loadMongoSetting()
+        print(host)
         
         self.dbClient = pymongo.MongoClient(host, port)
         collection = self.dbClient[self.dbName][self.symbol]          
@@ -378,7 +379,8 @@ class BacktestingEngine(object):
             bestCrossPrice = self.tick.lastPrice
         
         # 遍历停止单字典中的所有停止单
-        for stopOrderID, so in self.workingStopOrderDict.items():
+        copy = dict( (k, v) for k,v in self.workingStopOrderDict.items() )
+        for stopOrderID, so in copy.items():
             # 判断是否会成交
             buyCross = so.direction==DIRECTION_LONG and so.price<=buyCrossPrice
             sellCross = so.direction==DIRECTION_SHORT and so.price>=sellCrossPrice
@@ -461,7 +463,7 @@ class BacktestingEngine(object):
     #----------------------------------------------------------------------
     def output(self, content):
         """输出内容"""
-        print str(datetime.now()) + "\t" + content 
+        print (str(datetime.now()) + "\t" + content )
     
     #----------------------------------------------------------------------
     def calculateBacktestingResult(self):
@@ -826,11 +828,11 @@ class OptimizationSetting(object):
             return 
         
         if end < start:
-            print u'参数起始点必须不大于终止点'
+            print (u'参数起始点必须不大于终止点')
             return
         
         if step <= 0:
-            print u'参数布进必须大于0'
+            print (u'参数布进必须大于0')
             return
         
         l = []

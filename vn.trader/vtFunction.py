@@ -36,7 +36,7 @@ def loadMongoSetting():
     fileName = os.path.join(path, fileName)  
     
     try:
-        f = file(fileName)
+        f = open(fileName)
         setting = json.load(f)
         host = setting['mongoHost']
         port = setting['mongoPort']
