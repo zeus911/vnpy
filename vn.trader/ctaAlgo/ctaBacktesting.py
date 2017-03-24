@@ -320,7 +320,8 @@ class BacktestingEngine(object):
             sellBestCrossPrice = self.tick.bidPrice1
         
         # 遍历限价单字典中的所有限价单
-        for orderID, order in self.workingLimitOrderDict.items():
+        copy = dict( (k, v) for k,v in self.workingLimitOrderDict.items() )
+        for orderID, order in copy.items():
             # 判断是否会成交
             buyCross = order.direction==DIRECTION_LONG and order.price>=buyCrossPrice
             sellCross = order.direction==DIRECTION_SHORT and order.price<=sellCrossPrice
@@ -646,7 +647,6 @@ class BacktestingEngine(object):
     def showBacktestingResult(self):
         """显示回测结果"""
         d = self.calculateBacktestingResult()
-        
         # 输出
         self.output('-' * 30)
         self.output(u'第一笔交易：\t%s' % d['timeList'][0])

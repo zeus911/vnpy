@@ -388,7 +388,8 @@ def loadMcCsv(fileName, dbName, symbol):
         bar.high = float(d['High'])
         bar.low = float(d['Low'])
         bar.close = float(d['Close'])
-        bar.date = datetime.strptime(d['Date'], '%Y/%m/%d').strftime('%Y%m%d')
+        #bar.date = datetime.strptime(d['Date'], '%Y/%m/%d').strftime('%Y%m%d')
+        bar.date = datetime.strptime(d['Date'], '%Y-%m-%d').strftime('%Y%m%d')
         bar.time = d['Time']
         bar.datetime = datetime.strptime(bar.date + ' ' + bar.time, '%Y%m%d %H:%M:%S')
         bar.volume = d['TotalVolume']
@@ -445,6 +446,7 @@ if __name__ == '__main__':
     #e.downloadEquityDailyBarts('000001')
     
     # 这里将项目中包含的股指日内分钟线csv导入MongoDB，作者电脑耗时大约3分钟
-    loadMcCsv('IF0000_1min.csv', MINUTE_DB_NAME, 'IF0000')
+    #loadMcCsv('IF0000_1min.csv', MINUTE_DB_NAME, 'IF0000')
+    loadMcCsv('RB0000_1min.csv', MINUTE_DB_NAME, 'RB0000')
     #导入通达信历史分钟数据
     #loadTdxCsv('CL8.csv', MINUTE_DB_NAME, 'c0000')

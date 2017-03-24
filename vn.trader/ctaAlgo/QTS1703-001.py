@@ -24,16 +24,17 @@ import numpy as np
 
 ########################################################################
 class KkStrategy(CtaTemplate):
-    """基于King Keltner通道的交易策略"""
+    """基于通道外 Mean value reversal的交易策略"""
     className = 'KkStrategy'
-    author = u'用Python的交易员'
+    author = u'rxg'
 
     # 策略参数
     kkLength = 32           # 计算通道中值的窗口数
-    kkDev = 2.2             # 计算通道宽度的偏差
+    kkDev = 0.7             # 计算通道宽度的偏差
     initDays = 10           # 初始化数据所用的天数
     fixedSize = 1           # 每次交易的数量
     trailingPercent = 0.8   # 百分比移动止损
+    stopLossPercent = 0.2   # ATR 止损比例
 
     # 策略变量
     bar = None                  # 1分钟K线对象
@@ -61,7 +62,8 @@ class KkStrategy(CtaTemplate):
                  'author',
                  'vtSymbol',
                  'kkLength',
-                 'kkDev']    
+                 'kkDev',
+                 'stopLossPercent']    
 
     # 变量列表，保存了变量的名称
     varList = ['inited',
@@ -138,7 +140,7 @@ class KkStrategy(CtaTemplate):
     def onBar(self, bar):
         """收到Bar推送（必须由用户继承实现）"""
         # 如果当前是一个5分钟走完
-        if bar.datetime.minute % 5 == 0:
+        if bar.datetime.minute % 15 == 0:
             # 如果已经有聚合5分钟K线
             if self.fiveBar:
                 # 将最新分钟的数据更新到目前5分钟线中
@@ -203,6 +205,7 @@ class KkStrategy(CtaTemplate):
                                   self.lowArray, 
                                   self.closeArray,
                                   self.kkLength)[-1]
+
         self.kkMidLast = self.kkMid
         self.kkMid = talib.MA(self.closeArray, self.kkLength)[-1]
         self.kkUp = self.kkMid + self.atrValue * self.kkDev
@@ -244,7 +247,7 @@ class KkStrategy(CtaTemplate):
             self.intraTradeLow = min(self.intraTradeLow, bar.low)
             # 计算多头移动止损
             #longStop = self.intraTradeHigh * (1-self.trailingPercent/100)
-            longStop = self.intraTradeHigh - max(20,(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,(self.intraTradeHigh - self.intraTradeLow)*0.3)
             # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
             #print("current:cover", bar.close," ", longStop)
             orderID = self.short(longStop, abs(self.pos), stop=True)
@@ -257,7 +260,7 @@ class KkStrategy(CtaTemplate):
 
             #shortStop = self.intraTradeLow * (1+self.trailingPercent/100)
             #print("current:sell", bar.close," ", shortStop)
-            shortStop = self.intraTradeLow + max(20,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.3)
             orderID = self.buy(shortStop, abs(self.pos), stop=True)
             self.orderList.append(orderID)
                 
@@ -273,12 +276,17 @@ class KkStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onTrade(self, trade):
         # 多头开仓成交后，撤消空头委托
+        #print(trade.__dict__)
         if self.pos > 0:
             self.cancelOrder(self.shortOrderID)
             if self.buyOrderID in self.orderList:
                 self.orderList.remove(self.buyOrderID)
             if self.shortOrderID in self.orderList:
                 self.orderList.remove(self.shortOrderID)
+            #添加止损设置
+            #orderID = self.short(trade.price - self.atrValue*0.5, abs(self.pos), stop=True)
+            #self.orderList.append(orderID)
+
         # 反之同样
         elif self.pos < 0:
             self.cancelOrder(self.buyOrderID)
@@ -286,6 +294,9 @@ class KkStrategy(CtaTemplate):
                 self.orderList.remove(self.buyOrderID)
             if self.shortOrderID in self.orderList:
                 self.orderList.remove(self.shortOrderID)
+            #添加止损设置
+            #orderID = self.buy(trade.price + self.atrValue*0.5, abs(self.pos), stop=True)
+            #self.orderList.append(orderID)
         
         # 发出状态更新事件
         self.putEvent()
@@ -330,11 +341,11 @@ if __name__ == '__main__':
     #engine.setRate(0.3/10000)   # 万0.3
     #engine.setSize(300)         # 股指合约大小        
     engine.setSlippage(0.1)
-    engine.setRate(1/10000)
+    engine.setRate(5/10000)
     engine.setSize(10) 
     
     # 设置使用的历史数据库
-    engine.setDatabase(MINUTE_DB_NAME, 'IF0000')
+    engine.setDatabase(MINUTE_DB_NAME, 'RB0000')
     
     # 在引擎中创建策略对象
     d = {}
@@ -345,3 +356,23 @@ if __name__ == '__main__':
     
     # 显示回测结果
     engine.showBacktestingResult()
+
+    # 跑优化
+    setting = OptimizationSetting()                 # 新建一个优化任务设置对象
+    setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
+    setting.addParameter('kkDev', 0.5, 1., 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
+    #setting.addParameter('stopLossPercent', 0.1, 1, 0.1)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
+    #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
+    
+    # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
+    # 测试时还跑着一堆其他的程序，性能仅供参考
+    import time    
+    start = time.time()
+    
+    # 运行单进程优化函数，自动输出结果，耗时：359秒
+    engine.runOptimization(KkStrategy, setting)            
+    
+    # 多进程优化，耗时：89秒
+    #engine.runParallelOptimization(AtrRsiStrategy, setting)     
+    
+    print (u'耗时：%s' %(time.time()-start))
