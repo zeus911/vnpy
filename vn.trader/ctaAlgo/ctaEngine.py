@@ -213,6 +213,17 @@ class CtaEngine(object):
             del self.workingStopOrderDict[stopOrderID]
 
     #----------------------------------------------------------------------
+    def tradeStrategy(self,name,orderType):
+        """在策略内部加入手动交易"""
+        if name in self.strategyDict:
+            strategy = self.strategyDict[name]
+
+        if strategy.trading:
+            self.callStrategyFunc(strategy, strategy.onManualTrade, orderType) 
+        else:
+            self.writeCtaLog(u'策略实例不存在：%s' %name)    
+
+    #----------------------------------------------------------------------
     def processStopOrder(self, tick):
         """收到行情后处理本地停止单（检查是否要立即发出）"""
         vtSymbol = tick.vtSymbol

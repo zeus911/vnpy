@@ -7,6 +7,7 @@ CTA模块相关的GUI控制组件
 
 from uiBasicWidget import QtGui, QtCore, BasicCell,QtWidgets
 from eventEngine import *
+from ctaAlgo.ctaBase import *
 
 
 ########################################################################
@@ -87,14 +88,27 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         buttonInit = QtWidgets.QPushButton(u'初始化')
         buttonStart = QtWidgets.QPushButton(u'启动')
         buttonStop = QtWidgets.QPushButton(u'停止')
+        buttonBuy = QtWidgets.QPushButton(u'开多')
+        buttonCover = QtWidgets.QPushButton(u'平多')
+        buttonShort = QtWidgets.QPushButton(u'开空')
+        buttonSell = QtWidgets.QPushButton(u'平空')
+
         buttonInit.clicked.connect(self.init)
         buttonStart.clicked.connect(self.start)
         buttonStop.clicked.connect(self.stop)
+        buttonBuy.clicked.connect(self.buy)
+        buttonCover.clicked.connect(self.cover)
+        buttonShort.clicked.connect(self.short)
+        buttonSell.clicked.connect(self.sell)
         
         hbox1 = QtWidgets.QHBoxLayout()     
         hbox1.addWidget(buttonInit)
         hbox1.addWidget(buttonStart)
         hbox1.addWidget(buttonStop)
+        hbox1.addWidget(buttonBuy)
+        hbox1.addWidget(buttonCover)
+        hbox1.addWidget(buttonShort)
+        hbox1.addWidget(buttonSell)
         hbox1.addStretch()
         
         hbox2 = QtWidgets.QHBoxLayout()
@@ -142,6 +156,28 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         """停止策略"""
         self.ctaEngine.stopStrategy(self.name)
 
+    #----------------------------------------------------------------------
+    def buy(self):
+        """手动开多"""
+        self.ctaEngine.tradeStrategy(self.name,CTAORDER_BUY)
+        self.ctaEngine.writeCtaLog( u'手动开多' + self.name) 
+
+    #----------------------------------------------------------------------
+    def cover(self):
+        """手动平多"""
+        self.ctaEngine.tradeStrategy(self.name,CTAORDER_COVER)
+        self.ctaEngine.writeCtaLog( u'手动平多' + self.name) 
+
+    #----------------------------------------------------------------------
+    def short(self):
+        """手动开空"""
+        self.ctaEngine.tradeStrategy(self.name,CTAORDER_SHORT)
+        self.ctaEngine.writeCtaLog( u'手动开空' + self.name) 
+
+    def sell(self):
+        """手动平空"""
+        self.ctaEngine.tradeStrategy(self.name,CTAORDER_SELL)
+        self.ctaEngine.writeCtaLog( u'手动平空' + self.name) 
 
 ########################################################################
 class CtaEngineManager(QtWidgets.QWidget):

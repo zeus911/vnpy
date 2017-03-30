@@ -83,6 +83,11 @@ class CtaTemplate(object):
     def onTrade(self, trade):
         """收到成交推送（必须由用户继承实现）"""
         raise NotImplementedError
+
+    #----------------------------------------------------------------------
+    def onManualTrade(self, orderType):
+        """手动交易（必须由用户继承实现）"""
+        raise NotImplementedError
     
     #----------------------------------------------------------------------
     def onBar(self, bar):

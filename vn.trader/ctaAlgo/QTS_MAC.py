@@ -157,7 +157,7 @@ class EmaDemoStrategy(CtaTemplate):
     def onBar(self, bar):
         """收到Bar推送（必须由用户继承实现）"""
         # 如果当前是一个5分钟走完
-        if bar.datetime.minute % 60 == 0:
+        if bar.datetime.minute % 5 == 0:
             # 如果已经有聚合5分钟K线
             if self.fiveBar:
                 # 将最新分钟的数据更新到目前5分钟线中
@@ -327,7 +327,7 @@ if __name__ == '__main__':
     engine.setSize(10) 
     
     # 设置使用的历史数据库
-    engine.setDatabase(MINUTE_DB_NAME, 'RB0000')
+    engine.setDatabase(MINUTE_DB_NAME, 'RB1710')
     
     # 在引擎中创建策略对象
     d = {}
