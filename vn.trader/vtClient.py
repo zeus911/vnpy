@@ -64,27 +64,27 @@ class ClientEngine(object):
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):
         """连接特定名称的接口"""
-        self.client.connect(gatewayName)
+        return self.client.connect(gatewayName)
         
     #----------------------------------------------------------------------
     def subscribe(self, subscribeReq, gatewayName):
         """订阅特定接口的行情"""
-        self.client.subscribe(subscribeReq, gatewayName)
+        return self.client.subscribe(subscribeReq, gatewayName)
         
     #----------------------------------------------------------------------
     def sendOrder(self, orderReq, gatewayName):
         """对特定接口发单"""
-        self.client.sendOrder(orderReq, gatewayName)    
+        return self.client.sendOrder(orderReq, gatewayName)    
     
     #----------------------------------------------------------------------
     def cancelOrder(self, cancelOrderReq, gatewayName):
         """对特定接口撤单"""
-        self.client.cancelOrder(cancelOrderReq, gatewayName)
+        return self.client.cancelOrder(cancelOrderReq, gatewayName)
         
     #----------------------------------------------------------------------
     def qryAccont(self, gatewayName):
         """查询特定接口的账户"""
-        self.client.qryAccount(gatewayName)
+        return self.client.qryAccount(gatewayName)
         
     #----------------------------------------------------------------------
     def qryPosition(self, gatewayName):
@@ -116,7 +116,7 @@ class ClientEngine(object):
     #----------------------------------------------------------------------
     def dbInsert(self, dbName, collectionName, d):
         """向MongoDB中插入数据，d是具体数据"""
-        self.client.dbInsert(dbName, collectionName, d)
+        return self.client.dbInsert(dbName, collectionName, d)
     
     #----------------------------------------------------------------------
     def dbQuery(self, dbName, collectionName, d):
@@ -126,7 +126,7 @@ class ClientEngine(object):
     #----------------------------------------------------------------------
     def dbUpdate(self, dbName, collectionName, d, flt, upsert=False):
         """向MongoDB中更新数据，d是具体数据，flt是过滤条件，upsert代表若无是否要插入"""
-        self.client.dbUpdate(dbName, collectionName, d, flt, upsert)
+        return self.client.dbUpdate(dbName, collectionName, d, flt, upsert)
     
     #----------------------------------------------------------------------
     def getContract(self, vtSymbol):
@@ -160,7 +160,7 @@ def main():
     # 重载sys模块，设置默认字符串编码方式为utf8
     #reload(sys)
     #sys.setdefaultencoding('utf8')    
-    importlib.reload(sys)
+    #importlib.reload(sys)
     
     # 设置Windows底部任务栏图标
     if 'Windows' in platform.uname() :

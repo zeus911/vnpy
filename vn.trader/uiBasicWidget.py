@@ -390,7 +390,7 @@ class BasicMonitor(QtWidgets.QTableWidget):
     #----------------------------------------------------------------------
     def contextMenuEvent(self, event):
         """右键点击事件"""
-        self.menu.popup(QtWidgets.QCursor.pos())    
+        self.menu.popup(QtGui.QCursor.pos())    
 
 
 ########################################################################

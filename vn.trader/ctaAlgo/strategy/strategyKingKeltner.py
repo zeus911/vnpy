@@ -30,6 +30,7 @@ class KkStrategy(CtaTemplate):
     kkDev = 2.2             # 计算通道宽度的偏差
     initDays = 10           # 初始化数据所用的天数
     fixedSize = 1           # 每次交易的数量
+    tickAdd = 1             # tick add
 
     # 策略变量
     bar = None                  # 1分钟K线对象
@@ -130,6 +131,8 @@ class KkStrategy(CtaTemplate):
             bar.low = min(bar.low, tick.lastPrice)
             bar.close = tick.lastPrice
 
+        self.putEvent()
+
     #----------------------------------------------------------------------
     def onBar(self, bar):
         """收到Bar推送（必须由用户继承实现）"""
@@ -211,12 +214,12 @@ class KkStrategy(CtaTemplate):
     
         # 持有多头仓位
         elif self.pos > 0 and bar.close < self.kkUp:
-            orderID = self.sell(bar.close*0.97, abs(self.pos))
+            orderID = self.sell(bar.close-self.tickAdd, abs(self.pos))
             self.orderList.append(orderID)
     
         # 持有空头仓位
         elif self.pos < 0 and bar.close > self.kkDown:
-            orderID = self.buy(bar.close*1.03, abs(self.pos))
+            orderID = self.buy(bar.close+self.tickAdd, abs(self.pos))
             self.orderList.append(orderID)
     
         # 发出状态更新事件
@@ -264,6 +267,40 @@ class KkStrategy(CtaTemplate):
         # 将委托号记录到列表中
         self.orderList.append(self.buyOrderID)
         self.orderList.append(self.shortOrderID)
+
+    #----------------------------------------------------------------------
+    def onManualTrade(self, orderType):
+        """手动交易（必须由用户继承实现）"""
+
+        if( self.bar == None):
+            self.writeCtaLog(u'%s策略没有当前价' %self.name )
+            return
+            
+        self.writeCtaLog(u'%s策略当前价%s' % (self.name ,str(self.bar.close)))
+
+        for orderID in self.orderList:
+            self.cancelOrder(orderID)
+        self.orderList = []
+
+        if orderType == CTAORDER_BUY:
+            orderID = self.buy(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SELL:
+            orderID = self.sell(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SHORT:
+            orderID = self.short(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_COVER:
+            orderID = self.cover(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+
+        # 发出状态更新事件
+        self.putEvent()
 
 
 if __name__ == '__main__':
