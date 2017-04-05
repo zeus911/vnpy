@@ -58,11 +58,8 @@ class ClientEngine(object):
         
         # 扩展模块
         #self.ctaEngine = CtaEngine(self, self.eventEngine)
-        #self.drEngine = DrEngine(self, self.eventEngine)
-        #self.rmEngine = RmEngine(self, self.eventEngine)
-
-        self.rmEngine = self.client.getRmEngine()
-        self.drEngine = self.client.getDrEngine()
+        self.drEngine = DrEngine(self, self.eventEngine)
+        self.rmEngine = RmEngine(self, self.eventEngine)
 
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):

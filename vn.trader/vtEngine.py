@@ -53,16 +53,6 @@ class MainEngine(object):
             self._ctaEngine = CtaEngine(self, self.eventEngine)
         return self._ctaEngine
 
-    #-----------------------------------------------------------------------
-    def getRmEngine(self):
-        """ return risk engine """
-        return self.rmEngine
-
-    #-----------------------------------------------------------------------
-    def getDrEngine(self):
-        """ return drEngine engine """
-        return self.drEngine
-
     #----------------------------------------------------------------------
     def initGateway(self):
         """初始化接口对象"""
