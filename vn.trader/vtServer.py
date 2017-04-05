@@ -44,11 +44,8 @@ class VtServer(RpcServer):
         self.register(self.engine.getOrder)
         self.register(self.engine.getAllWorkingOrders)
         self.register(self.engine.getAllGatewayNames)
-
-        self.engine.drEngine.__name__ = u'drEngine'
-        self.engine.rmEngine.__name__ = u'rmEngine'
-        self.register(self.engine.drEngine)
-        self.register(self.engine.rmEngine)
+        self.register(self.engine.getDrEngine)
+        self.register(self.engine.getRmEngine)
 
         # 注册事件引擎发送的事件处理监听
         self.engine.eventEngine.registerGeneralHandler(self.eventHandler)

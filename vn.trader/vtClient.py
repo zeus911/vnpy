@@ -61,8 +61,8 @@ class ClientEngine(object):
         #self.drEngine = DrEngine(self, self.eventEngine)
         #self.rmEngine = RmEngine(self, self.eventEngine)
 
-        self.rmEngine = self.client.rmEngine
-        self.drEngine = self.client.drEngine
+        self.rmEngine = self.client.getRmEngine()
+        self.drEngine = self.client.getDrEngine()
 
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):
