@@ -57,10 +57,22 @@ class ClientEngine(object):
         self.eventEngine = eventEngine
         
         # 扩展模块
-        self.ctaEngine = CtaEngine(self, self.eventEngine)
-        self.drEngine = DrEngine(self, self.eventEngine)
-        self.rmEngine = RmEngine(self, self.eventEngine)
+        #self.ctaEngine = CtaEngine(self, self.eventEngine)
+        #self.drEngine = DrEngine(self, self.eventEngine)
+        #self.rmEngine = RmEngine(self, self.eventEngine)
     
+    #-----------------------------
+    @property
+    def drEngine(self):
+        """use server drEngine"""
+        return self.client.drEngine()
+
+    #-----------------------------
+    @property
+    def rmEngine(self):
+        """use server rmEngine"""
+        return self.client.rmEngine()
+
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):
         """连接特定名称的接口"""

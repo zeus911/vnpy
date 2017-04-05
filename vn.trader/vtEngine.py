@@ -41,8 +41,8 @@ class MainEngine(object):
 
         # 扩展模块
         #self.ctaEngine = CtaEngine(self, self.eventEngine)
-        self.drEngine = DrEngine(self, self.eventEngine)
-        self.rmEngine = RmEngine(self, self.eventEngine)
+        #self.drEngine = DrEngine(self, self.eventEngine)
+        #self.rmEngine = RmEngine(self, self.eventEngine)
         
     #----------------------------------------------------------------------
     @property
@@ -52,6 +52,22 @@ class MainEngine(object):
         if self._ctaEngine == None:
             self._ctaEngine = CtaEngine(self, self.eventEngine)
         return self._ctaEngine
+
+    #-----------------------------------------------------------------------
+    @property
+    def rmEngine(self):
+        """ return risk engine """
+        if self._rmEngine == None:
+            self._rmEngine = RmEngine(self, self.eventEngine)
+        return self._rmEngine
+
+    #-----------------------------------------------------------------------
+    @property
+    def drEngine(self):
+        """ return drEngine engine """
+        if self._drEngine == None:
+            self._drEngine = DrEngine(self, self.eventEngine)
+        return self._drEngine
 
     #----------------------------------------------------------------------
     def initGateway(self):

@@ -131,6 +131,7 @@ class KkStrategy(CtaTemplate):
             bar.low = min(bar.low, tick.lastPrice)
             bar.close = tick.lastPrice
 
+        #过高会引发vnrtp req/res not pair 
         self.putEvent()
 
     #----------------------------------------------------------------------
