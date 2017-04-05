@@ -62,6 +62,7 @@ class MainEngine(object):
         """ return risk engine """
         if self._rmEngine == None:
             self._rmEngine = RmEngine(self, self.eventEngine)
+        print(self._rmEngine.__dict__)
         return self._rmEngine
 
     #-----------------------------------------------------------------------
