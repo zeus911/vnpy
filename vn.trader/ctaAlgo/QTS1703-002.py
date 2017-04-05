@@ -231,6 +231,8 @@ class KkStrategy(CtaTemplate):
         timeA = datetime.strptime(bar.time, "%H:%M:%S")
         timeBegin = datetime.strptime("09:30:00", "%H:%M:%S")
         timeStop = datetime.strptime("14:30:00", "%H:%M:%S")
+        #todo
+        # 限制开仓时间
 
         if timeA < timeBegin or timeA > timeStop:
             #平仓

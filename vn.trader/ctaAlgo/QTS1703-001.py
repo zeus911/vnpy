@@ -248,6 +248,7 @@ class KkStrategy(CtaTemplate):
             # 计算多头移动止损
             #longStop = self.intraTradeHigh * (1-self.trailingPercent/100)
             longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,(self.intraTradeHigh - self.intraTradeLow)*0.3)
+            #todo
             # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
             #print("current:cover", bar.close," ", longStop)
             orderID = self.short(longStop, abs(self.pos), stop=True)

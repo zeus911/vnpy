@@ -203,7 +203,7 @@ class PriceWidget(QtWidgets.QWidget):
     def initHistoricalData(self,startDate=None):
         """初始历史数据"""
 
-        td = timedelta(days=3)     # 读取3天的历史TICK数据
+        td = timedelta(days=0)     # 读取3天的历史TICK数据
 
         if startDate:
             cx = self.loadTick(self.symbol, startDate-td)
