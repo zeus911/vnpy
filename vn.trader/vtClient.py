@@ -60,19 +60,9 @@ class ClientEngine(object):
         #self.ctaEngine = CtaEngine(self, self.eventEngine)
         #self.drEngine = DrEngine(self, self.eventEngine)
         #self.rmEngine = RmEngine(self, self.eventEngine)
-    
-    #-----------------------------
-    @property
-    def drEngine(self):
-        """use server drEngine"""
-        return self.client.drEngine
 
-    #-----------------------------
-    @property
-    def rmEngine(self):
-        """use server rmEngine"""
-        print(self.client.rmEngine.__dict__)
-        return self.client.rmEngine
+        self.rmEngine = self.client.rmEngine
+        self.drEngine = self.client.drEngine
 
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):

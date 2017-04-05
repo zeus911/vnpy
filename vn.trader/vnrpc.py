@@ -167,13 +167,12 @@ class RpcServer(RpcObject):
             try:
                 func = self.__functions[name]
                 r = func(*args, **kwargs)
-                #print(name,args)
+                print(name,args)
                 #print(args)
                 #print(kwargs)
                 #print(r)
                 rep = [True, r]
             except Exception as e:
-                print(name,args)
                 rep = [False, traceback.format_exc()]
             
             # 序列化打包
