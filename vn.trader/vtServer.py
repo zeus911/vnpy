@@ -9,6 +9,7 @@ from threading import Thread
 
 import vtPath
 import eventType
+from riskManager.rmEngine import RmEngine
 from vnrpc import RpcServer
 from vtEngine import MainEngine
 
