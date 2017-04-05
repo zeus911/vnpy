@@ -65,13 +65,14 @@ class ClientEngine(object):
     @property
     def drEngine(self):
         """use server drEngine"""
-        return self.client.drEngine()
+        return self.client.drEngine
 
     #-----------------------------
     @property
     def rmEngine(self):
         """use server rmEngine"""
-        return self.client.rmEngine()
+        print(self.client.rmEngine.__dict__)
+        return self.client.rmEngine
 
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):

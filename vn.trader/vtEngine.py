@@ -43,6 +43,9 @@ class MainEngine(object):
         #self.ctaEngine = CtaEngine(self, self.eventEngine)
         #self.drEngine = DrEngine(self, self.eventEngine)
         #self.rmEngine = RmEngine(self, self.eventEngine)
+        self.ctaEngine = None
+        self.drEngine = None
+        self.rmEngine = None
         
     #----------------------------------------------------------------------
     @property
