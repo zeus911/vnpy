@@ -2,13 +2,13 @@
     {
         "name": "double ema",
         "className": "EmaDemoStrategy",
-        "vtSymbol": "rb1705"
+        "vtSymbol": "rb1710"
     },
 
     {
         "name": "atr rsi",
         "className": "AtrRsiStrategy",
-        "vtSymbol": "rb1706"
+        "vtSymbol": "rb1710"
     },
 
     {

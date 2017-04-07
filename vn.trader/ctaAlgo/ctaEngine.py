@@ -28,7 +28,7 @@ from eventEngine import *
 from vtConstant import *
 from vtGateway import VtSubscribeReq, VtOrderReq, VtCancelOrderReq, VtLogData
 from vtFunction import todayDate
-
+from strategy.OrderConfirmProgress import OrderConfirmProgess
 
 ########################################################################
 class CtaEngine(object):
@@ -78,8 +78,18 @@ class CtaEngine(object):
         # 注册事件监听
         self.registerEvent()
  
-    #----------------------------------------------------------------------
+
     def sendOrder(self, vtSymbol, orderType, price, volume, strategy):
+        """发单"""
+        #开他需要手动确认
+        if orderType == CTAORDER_BUY or orderType == CTAORDER_SHORT:
+            self.progess = OrderConfirmProgess(self.mainEngine,self.eventEngine,vtSymbol, volume, orderType,  lambda : self.sendOrderImp(vtSymbol,orderType,price,volume,strategy) )
+            self.progess.show()
+            return ""
+        return self.sendOrderImp(vtSymbol,orderType,price,volume,strategy)
+
+    #----------------------------------------------------------------------
+    def sendOrderImp(self, vtSymbol, orderType, price, volume, strategy):
         """发单"""
         contract = self.mainEngine.getContract(vtSymbol)
         

@@ -235,6 +235,40 @@ class AtrRsiStrategy(CtaTemplate):
         # 发出状态更新事件
         self.putEvent()
 
+    #----------------------------------------------------------------------
+    def onManualTrade(self, orderType):
+        """手动交易（必须由用户继承实现）"""
+
+        if( self.bar == None):
+            self.writeCtaLog(u'%s策略没有当前价' %self.name )
+            return
+            
+        self.writeCtaLog(u'%s策略当前价%s' % (self.name ,str(self.bar.close)))
+
+        for orderID in self.orderList:
+            self.cancelOrder(orderID)
+        self.orderList = []
+
+        if orderType == CTAORDER_BUY:
+            orderID = self.buy(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SELL:
+            orderID = self.sell(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SHORT:
+            orderID = self.short(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_COVER:
+            orderID = self.cover(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+
+        # 发出状态更新事件
+        self.putEvent()
+        
 if __name__ == '__main__':
     # 提供直接双击回测的功能
     # 导入PyQt4的包是为了保证matplotlib使用PyQt4而不是PySide，防止初始化出错

@@ -38,6 +38,7 @@ class EmaDemoStrategy(CtaTemplate):
     slowMa = []             # 与上面相同
     slowMa0 = EMPTY_FLOAT
     slowMa1 = EMPTY_FLOAT
+    orderList = []
     
     # 参数列表，保存了参数的名称
     paramList = ['name',
@@ -185,7 +186,40 @@ class EmaDemoStrategy(CtaTemplate):
         """收到成交推送（必须由用户继承实现）"""
         # 对于无需做细粒度委托控制的策略，可以忽略onOrder
         pass
-    
+
+    #----------------------------------------------------------------------
+    def onManualTrade(self, orderType):
+        """手动交易（必须由用户继承实现）"""
+
+        if( self.bar == None):
+            self.writeCtaLog(u'%s策略没有当前价' %self.name )
+            return
+            
+        self.writeCtaLog(u'%s策略当前价%s' % (self.name ,str(self.bar.close)))
+
+        for orderID in self.orderList:
+            self.cancelOrder(orderID)
+        self.orderList = []
+
+        if orderType == CTAORDER_BUY:
+            orderID = self.buy(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SELL:
+            orderID = self.sell(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_SHORT:
+            orderID = self.short(self.bar.close - self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+        elif orderType == CTAORDER_COVER:
+            orderID = self.cover(self.bar.close + self.tickAdd, self.fixedSize)
+            self.orderList.append(orderID)
+            pass
+
+        # 发出状态更新事件
+        self.putEvent()
     
 ########################################################################################
 class OrderManagementDemoStrategy(CtaTemplate):
