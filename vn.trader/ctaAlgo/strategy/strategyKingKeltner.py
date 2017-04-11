@@ -220,7 +220,7 @@ class KkStrategy(CtaTemplate):
     
         # 持有空头仓位
         elif self.pos < 0 and bar.close > self.kkDown:
-            orderID = self.buy(bar.close+self.tickAdd, abs(self.pos))
+            orderID = self.cover(bar.close+self.tickAdd, abs(self.pos))
             self.orderList.append(orderID)
     
         # 发出状态更新事件

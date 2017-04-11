@@ -10,6 +10,7 @@ from eventEngine import *
 from ctaAlgo.ctaBase import *
 from PyQt5 import QtGui
 import os,json,time
+from language import text
 
 ########################################################################################
 class ParamWindow2(QtGui.QDialog):
@@ -620,8 +621,17 @@ class CtaEngineManager(QtWidgets.QWidget):
         self.signal.connect(self.updateCtaLog)
         self.eventEngine.register(EVENT_CTA_LOG, self.signal.emit)
         
-        
+    #----------------------------------------------------------------------
+    def closeEvent(self, event):
+        """关闭窗口时的事件"""
+        reply = QtGui.QMessageBox.question(self, text.SAVE_POSITION_DATA,
+                                           text.SAVE_POSITION_QUESTION, QtGui.QMessageBox.Yes | 
+                                           QtGui.QMessageBox.No, QtGui.QMessageBox.No)
     
+        if reply == QtGui.QMessageBox.Yes: 
+            self.ctaEngine.savePosition()
+            
+        event.accept()
     
     
     

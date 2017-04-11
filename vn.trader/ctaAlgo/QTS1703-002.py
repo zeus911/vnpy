@@ -227,38 +227,36 @@ class KkStrategy(CtaTemplate):
         #     orderID = self.buy(bar.close*1.03, abs(self.pos))
         #     self.orderList.append(orderID)
 
-        # 最后半小时不再持仓
+        # 最后半小时平仓
         timeA = datetime.strptime(bar.time, "%H:%M:%S")
         timeBegin = datetime.strptime("09:30:00", "%H:%M:%S")
         timeStop = datetime.strptime("14:30:00", "%H:%M:%S")
-        #todo
-        # 限制开仓时间
 
         if timeA < timeBegin or timeA > timeStop:
             #平仓
-            if self.pos == 0:
-                return
-            elif self.pos > 0:
+            if self.pos > 0:
                 orderID = self.short(bar.close -5, abs(self.pos), stop=True)
                 self.orderList.append(orderID)
-            elif self.pos < 0:
+            if self.pos < 0:
                 orderID = self.buy(bar.close + 5, abs(self.pos), stop=True)
                 self.orderList.append(orderID)
                 
 
-
         if self.pos == 0:
             self.intraTradeHigh = bar.high
             self.intraTradeLow = bar.low
-            if bar.close > self.kkUp and self.kkMidLast>self.kkMid:
-                #print("short", bar.close)
-                orderID = self.short(bar.close-5, self.fixedSize)
-                self.orderList.append(orderID)
 
-            elif bar.close < self.kkDown and self.kkMidLast<self.kkMid:
-                #print("buy", bar.close)
-                orderID = self.buy(bar.close+5, self.fixedSize)
-                self.orderList.append(orderID)
+            #9:30-14:00 开仓时间
+            if timeA < timeBegin or timeA > timeStop:
+                if bar.close > self.kkUp and self.kkMidLast>self.kkMid:
+                    #print("short", bar.close)
+                    orderID = self.short(bar.close-5, self.fixedSize)
+                    self.orderList.append(orderID)
+
+                elif bar.close < self.kkDown and self.kkMidLast<self.kkMid:
+                    #print("buy", bar.close)
+                    orderID = self.buy(bar.close+5, self.fixedSize)
+                    self.orderList.append(orderID)
 
                 # 持有多头仓位
         elif self.pos > 0:
