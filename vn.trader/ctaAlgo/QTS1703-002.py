@@ -230,16 +230,17 @@ class KkStrategy(CtaTemplate):
         # 最后半小时平仓
         timeA = datetime.strptime(bar.time, "%H:%M:%S")
         timeBegin = datetime.strptime("09:30:00", "%H:%M:%S")
+        timeOpenEnd = datetime.strptime("14:30:00", "%H:%M:%S")
         timeStop = datetime.strptime("14:30:00", "%H:%M:%S")
 
-        if timeA < timeBegin or timeA > timeStop:
-            #平仓
-            if self.pos > 0:
-                orderID = self.short(bar.close -5, abs(self.pos), stop=True)
-                self.orderList.append(orderID)
-            if self.pos < 0:
-                orderID = self.buy(bar.close + 5, abs(self.pos), stop=True)
-                self.orderList.append(orderID)
+        # if timeA < timeBegin or timeA > timeStop:
+        #     #平仓
+        #     if self.pos > 0:
+        #         orderID = self.sell(bar.close -5, abs(self.pos), stop=True)
+        #         self.orderList.append(orderID)
+        #     if self.pos < 0:
+        #         orderID = self.cover(bar.close + 5, abs(self.pos), stop=True)
+        #         self.orderList.append(orderID)
                 
 
         if self.pos == 0:
@@ -247,7 +248,7 @@ class KkStrategy(CtaTemplate):
             self.intraTradeLow = bar.low
 
             #9:30-14:00 开仓时间
-            if timeA < timeBegin or timeA > timeStop:
+            if timeA < timeBegin or timeA > timeOpenEnd:
                 if bar.close > self.kkUp and self.kkMidLast>self.kkMid:
                     #print("short", bar.close)
                     orderID = self.short(bar.close-5, self.fixedSize)
@@ -268,7 +269,7 @@ class KkStrategy(CtaTemplate):
             longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,(self.intraTradeHigh - self.intraTradeLow)*0.3)
             # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
             #print("current:cover", bar.close," ", longStop)
-            orderID = self.short(longStop, abs(self.pos), stop=True)
+            orderID = self.sell(longStop, abs(self.pos), stop=True)
             self.orderList.append(orderID)
 
         # 持有空头仓位
@@ -279,7 +280,7 @@ class KkStrategy(CtaTemplate):
             #shortStop = self.intraTradeLow * (1+self.trailingPercent/100)
             #print("current:sell", bar.close," ", shortStop)
             shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.3)
-            orderID = self.buy(shortStop, abs(self.pos), stop=True)
+            orderID = self.cover(shortStop, abs(self.pos), stop=True)
             self.orderList.append(orderID)
                 
     
@@ -352,7 +353,7 @@ if __name__ == '__main__':
     engine.setBacktestingMode(engine.BAR_MODE)
 
     # 设置回测用的数据起始日期
-    engine.setStartDate('20120101')
+    engine.setStartDate('20160601')
     
     # 设置产品相关参数
     #engine.setSlippage(0.2)     # 股指1跳
@@ -375,22 +376,23 @@ if __name__ == '__main__':
     # 显示回测结果
     engine.showBacktestingResult()
 
-    # 跑优化
-    setting = OptimizationSetting()                 # 新建一个优化任务设置对象
-    setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
-    setting.addParameter('kkDev', 0.5, 1., 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
-    #setting.addParameter('stopLossPercent', 0.1, 1, 0.1)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
-    #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
+
+    # # 跑优化
+    # setting = OptimizationSetting()                 # 新建一个优化任务设置对象
+    # setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
+    # setting.addParameter('kkDev', 0.5, 1., 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
+    # #setting.addParameter('stopLossPercent', 0.1, 1, 0.1)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
+    # #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
     
-    # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
-    # 测试时还跑着一堆其他的程序，性能仅供参考
-    import time    
-    start = time.time()
+    # # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
+    # # 测试时还跑着一堆其他的程序，性能仅供参考
+    # import time    
+    # start = time.time()
     
-    # 运行单进程优化函数，自动输出结果，耗时：359秒
-    engine.runOptimization(KkStrategy, setting)            
+    # # 运行单进程优化函数，自动输出结果，耗时：359秒
+    # engine.runOptimization(KkStrategy, setting)            
     
-    # 多进程优化，耗时：89秒
-    #engine.runParallelOptimization(AtrRsiStrategy, setting)     
+    # # 多进程优化，耗时：89秒
+    # #engine.runParallelOptimization(AtrRsiStrategy, setting)     
     
-    print (u'耗时：%s' %(time.time()-start))
+    # print (u'耗时：%s' %(time.time()-start))

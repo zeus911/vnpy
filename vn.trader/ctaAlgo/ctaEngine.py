@@ -78,18 +78,8 @@ class CtaEngine(object):
         # 注册事件监听
         self.registerEvent()
  
-
-    def sendOrder(self, vtSymbol, orderType, price, volume, strategy):
-        """发单"""
-        #开他需要手动确认
-        if orderType == CTAORDER_BUY or orderType == CTAORDER_SHORT:
-            self.progess = OrderConfirmProgess(self.mainEngine,self.eventEngine,vtSymbol, volume, orderType,  lambda : self.sendOrderImp(vtSymbol,orderType,price,volume,strategy) )
-            self.progess.show()
-            return ""
-        return self.sendOrderImp(vtSymbol,orderType,price,volume,strategy)
-
     #----------------------------------------------------------------------
-    def sendOrderImp(self, vtSymbol, orderType, price, volume, strategy):
+    def sendOrder(self, vtSymbol, orderType, price, volume, strategy):
         """发单"""
         contract = self.mainEngine.getContract(vtSymbol)
         
@@ -229,7 +219,10 @@ class CtaEngine(object):
             strategy = self.strategyDict[name]
 
         if strategy.trading:
-            self.callStrategyFunc(strategy, strategy.onManualTrade, orderType) 
+            #todo change volume to true value
+            self.progess = OrderConfirmProgess(self.mainEngine,self.eventEngine,strategy.vtSymbol, getattr(strategy,'fixedSize',1), orderType,  lambda : self.callStrategyFunc(strategy, strategy.onManualTrade, orderType) )
+            self.progess.show()
+            #self.callStrategyFunc(strategy, strategy.onManualTrade, orderType) 
         else:
             self.writeCtaLog(u'策略实例不存在：%s' %name)    
 

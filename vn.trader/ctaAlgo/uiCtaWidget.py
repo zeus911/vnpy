@@ -367,6 +367,8 @@ class CtaValueMonitor(QtWidgets.QTableWidget):
 class CtaStrategyManager(QtWidgets.QGroupBox):
     """策略管理组件"""
     signal = QtCore.pyqtSignal(type(Event()))
+    signalBuy = QtCore.pyqtSignal(type(Event())) #开仓信号，需人工确认
+    signalShort = QtCore.pyqtSignal(type(Event())) #开仓信号，需人工确认
 
     #----------------------------------------------------------------------
     def __init__(self, ctaEngine, eventEngine, name, parent=None):
@@ -457,6 +459,11 @@ class CtaStrategyManager(QtWidgets.QGroupBox):
         """注册事件监听"""
         self.signal.connect(self.updateMonitor)
         self.eventEngine.register(EVENT_CTA_STRATEGY+self.name, self.signal.emit)
+
+        self.signalBuy.connect(self.buy)
+        self.signalShort.connect(self.short)
+        self.eventEngine.register(EVENT_CTA_STRATEGY+self.name+".BUY", self.signalBuy.emit)
+        self.eventEngine.register(EVENT_CTA_STRATEGY+self.name+".SHORT", self.signalShort.emit)
     
     #----------------------------------------------------------------------
     def init(self):

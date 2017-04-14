@@ -250,19 +250,19 @@ class AtrRsiStrategy(CtaTemplate):
         self.orderList = []
 
         if orderType == CTAORDER_BUY:
-            orderID = self.buy(self.bar.close + self.tickAdd, self.fixedSize)
+            orderID = self.buy(self.bar.close + 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_SELL:
-            orderID = self.sell(self.bar.close - self.tickAdd, self.fixedSize)
+            orderID = self.sell(self.bar.close - 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_SHORT:
-            orderID = self.short(self.bar.close - self.tickAdd, self.fixedSize)
+            orderID = self.short(self.bar.close - 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_COVER:
-            orderID = self.cover(self.bar.close + self.tickAdd, self.fixedSize)
+            orderID = self.cover(self.bar.close + 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
 

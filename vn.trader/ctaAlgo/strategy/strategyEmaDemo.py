@@ -14,7 +14,7 @@
 
 from ctaBase import *
 from ctaTemplate import CtaTemplate
-
+from eventEngine import * #for event
 
 ########################################################################
 class EmaDemoStrategy(CtaTemplate):
@@ -39,12 +39,15 @@ class EmaDemoStrategy(CtaTemplate):
     slowMa0 = EMPTY_FLOAT
     slowMa1 = EMPTY_FLOAT
     orderList = []
+
+    fixedSize = 1
     
     # 参数列表，保存了参数的名称
     paramList = ['name',
                  'className',
                  'author',
                  'vtSymbol',
+                 'fixedSize',
                  'fastK',
                  'slowK']    
     
@@ -130,6 +133,8 @@ class EmaDemoStrategy(CtaTemplate):
             bar.low = min(bar.low, tick.lastPrice)
             bar.close = tick.lastPrice
         
+        #过高会引发vnrtp req/res not pair 
+        self.putEvent()
     #----------------------------------------------------------------------
     def onBar(self, bar):
         """收到Bar推送（必须由用户继承实现）"""
@@ -159,7 +164,9 @@ class EmaDemoStrategy(CtaTemplate):
         if crossOver:
             # 如果金叉时手头没有持仓，则直接做多
             if self.pos == 0:
-                self.buy(bar.close, 1)
+                #self.buy(bar.close, 1)
+                event = Event(EVENT_CTA_STRATEGY+self.name+".BUY")
+                self.ctaEngine.eventEngine.put(event)
             # 如果有空头持仓，则先平空，再做多
             elif self.pos < 0:
                 self.cover(bar.close, 1)
@@ -202,19 +209,19 @@ class EmaDemoStrategy(CtaTemplate):
         self.orderList = []
 
         if orderType == CTAORDER_BUY:
-            orderID = self.buy(self.bar.close + self.tickAdd, self.fixedSize)
+            orderID = self.buy(self.bar.close + 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_SELL:
-            orderID = self.sell(self.bar.close - self.tickAdd, self.fixedSize)
+            orderID = self.sell(self.bar.close - 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_SHORT:
-            orderID = self.short(self.bar.close - self.tickAdd, self.fixedSize)
+            orderID = self.short(self.bar.close - 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
         elif orderType == CTAORDER_COVER:
-            orderID = self.cover(self.bar.close + self.tickAdd, self.fixedSize)
+            orderID = self.cover(self.bar.close + 1, self.fixedSize)
             self.orderList.append(orderID)
             pass
 

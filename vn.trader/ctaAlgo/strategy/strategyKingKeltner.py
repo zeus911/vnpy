@@ -57,6 +57,7 @@ class KkStrategy(CtaTemplate):
                  'className',
                  'author',
                  'vtSymbol',
+                 'fixedSize',
                  'kkLength',
                  'kkDev']    
 
