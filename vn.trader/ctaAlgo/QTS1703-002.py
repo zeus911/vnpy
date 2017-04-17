@@ -34,7 +34,7 @@ class KkStrategy(CtaTemplate):
     initDays = 10           # 初始化数据所用的天数
     fixedSize = 1           # 每次交易的数量
     trailingPercent = 0.8   # 百分比移动止损
-    stopLossPercent = 0.2   # ATR 止损比例
+    stopLossPercent = 0.3   # ATR 止损比例
 
     # 策略变量
     bar = None                  # 1分钟K线对象
@@ -230,8 +230,10 @@ class KkStrategy(CtaTemplate):
         # 最后半小时平仓
         timeA = datetime.strptime(bar.time, "%H:%M:%S")
         timeBegin = datetime.strptime("09:30:00", "%H:%M:%S")
-        timeOpenEnd = datetime.strptime("14:30:00", "%H:%M:%S")
+        timeOpenEnd = datetime.strptime("10:30:00", "%H:%M:%S")
         timeStop = datetime.strptime("14:30:00", "%H:%M:%S")
+
+        
 
         # if timeA < timeBegin or timeA > timeStop:
         #     #平仓
@@ -353,7 +355,7 @@ if __name__ == '__main__':
     engine.setBacktestingMode(engine.BAR_MODE)
 
     # 设置回测用的数据起始日期
-    engine.setStartDate('20160601')
+    engine.setStartDate('20150601')
     
     # 设置产品相关参数
     #engine.setSlippage(0.2)     # 股指1跳
