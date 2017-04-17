@@ -467,7 +467,7 @@ class CtpTdApi(TdApi):
         self.frontID = EMPTY_INT            # 前置机编号
         self.sessionID = EMPTY_INT          # 会话编号
         
-        self.posBufferDict = {}             # 缓存持仓数据的字典
+        self.posDict = {}
         self.symbolExchangeDict = {}        # 保存合约代码和交易所的印射关系
         self.symbolSizeDict = {}            # 保存合约代码和合约大小的印射关系
                 
@@ -578,6 +578,22 @@ class CtpTdApi(TdApi):
     #----------------------------------------------------------------------
     def onRspOrderInsert(self, data, error, n, last):
         """发单错误（柜台）"""
+        # 推送委托信息
+        order = VtOrderData()
+        order.gatewayName = self.gatewayName
+        order.symbol = data[b'InstrumentID'].decode()
+        order.exchange = exchangeMapReverse[data[b'ExchangeID']]
+        order.vtSymbol = order.symbol
+        order.orderID = data[b'OrderRef']
+        order.vtOrderID = '.'.join([self.gatewayName, order.orderID])        
+        order.direction = directionMapReverse.get(data[b'Direction'], DIRECTION_UNKNOWN)
+        order.offset = offsetMapReverse.get(data[b'CombOffsetFlag'], OFFSET_UNKNOWN)
+        order.status = STATUS_REJECTED
+        order.price = data[b'LimitPrice']
+        order.totalVolume = data[b'VolumeTotalOriginal']
+        self.gateway.onOrder(order)
+        
+        # 推送错误信息
         err = VtErrorData()
         err.gatewayName = self.gatewayName
         err.errorID = error[b'ErrorID']
@@ -677,29 +693,50 @@ class CtpTdApi(TdApi):
         
     #----------------------------------------------------------------------
     def onRspQryInvestorPosition(self, data, error, n, last):
-        """持仓查询回报"""
-        # 获取缓存字典中的持仓缓存，若无则创建并初始化
-        positionName = '.'.join([data[b'InstrumentID'].decode(), data[b'PosiDirection']])
-        
-        if positionName in self.posBufferDict:
-            posBuffer = self.posBufferDict[positionName]
+        """持仓查询回报"""                
+        # 获取持仓缓存对象
+        posName = '.'.join([data[b'InstrumentID'].decode(), data[b'PosiDirection']])
+        if posName in self.posDict:
+            pos = self.posDict[posName]
         else:
-            posBuffer = PositionBuffer(data, self.gatewayName)
-            self.posBufferDict[positionName] = posBuffer
-        
-        # 更新持仓缓存，并获取VT系统中持仓对象的返回值
-        exchange = self.symbolExchangeDict.get(data[b'InstrumentID'].decode(), EXCHANGE_UNKNOWN)
-        size = self.symbolSizeDict.get(data[b'InstrumentID'].decode(), 1)
-        if exchange == EXCHANGE_SHFE:
-            posBuffer.updateShfeBuffer(data, size)
-        else:
-            posBuffer.updateBuffer(data, size)
+            pos = VtPositionData()
+            self.posDict[posName] = pos
             
-        # 所有持仓数据都更新后，再将缓存中的持仓情况发送到事件引擎中
+            pos.gatewayName = self.gatewayName
+            pos.symbol = data[b'InstrumentID'].decode()
+            pos.vtSymbol = pos.symbol
+            pos.direction = posiDirectionMapReverse.get(data[b'PosiDirection'], '')
+            pos.vtPositionName = '.'.join([pos.vtSymbol, pos.direction]) 
+        
+        # 针对上期所持仓的今昨分条返回（有昨仓、无今仓），读取昨仓数据
+        if data[b'YdPosition'] and not data[b'TodayPosition']:
+            pos.ydPosition = data[b'Position']
+            
+        # 计算成本
+        cost = pos.price * pos.position
+        
+        # 汇总总仓
+        pos.position += data[b'Position']
+        pos.positionProfit += data[b'PositionProfit']
+        
+        # 计算持仓均价
+        if pos.position:
+            pos.price = (cost + data[b'PositionCost']) / pos.position
+        
+        # 读取冻结
+        if pos.direction is DIRECTION_LONG: 
+            pos.frozen += data[b'LongFrozen']
+        else:
+            pos.frozen += data[b'ShortFrozen']
+        
+        # 查询回报结束
         if last:
-            for buf in self.posBufferDict.values():
-                pos = buf.getPos()
+            # 遍历推送
+            for pos in self.posDict.values():
                 self.gateway.onPosition(pos)
+            
+            # 清空缓存
+            self.posDict.clear()
         
     #----------------------------------------------------------------------
     def onRspQryTradingAccount(self, data, error, n, last):
