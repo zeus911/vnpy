@@ -29,12 +29,12 @@ class KkStrategy(CtaTemplate):
     author = u'rxg'
 
     # 策略参数
-    kkLength = 32           # 计算通道中值的窗口数
-    kkDev = 0.7             # 计算通道宽度的偏差
+    kkLength = 30           # 计算通道中值的窗口数
+    kkDev = 1.0             # 计算通道宽度的偏差
     initDays = 10           # 初始化数据所用的天数
     fixedSize = 1           # 每次交易的数量
     trailingPercent = 0.8   # 百分比移动止损
-    stopLossPercent = 0.3   # ATR 止损比例
+    stopLossPercent = 2   # ATR 止损比例
 
     # 策略变量
     bar = None                  # 1分钟K线对象
@@ -55,6 +55,10 @@ class KkStrategy(CtaTemplate):
     buyOrderID = None              # OCO委托买入开仓的委托号
     shortOrderID = None            # OCO委托卖出开仓的委托号
     orderList = []                      # 保存委托代码的列表
+
+    holdTime = 0                       #持仓时间
+    regressCount = 0                   #回归次数
+    tradeIndex = 0                     #交易编号
 
     # 参数列表，保存了参数的名称
     paramList = ['name',
@@ -139,6 +143,50 @@ class KkStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onBar(self, bar):
         """收到Bar推送（必须由用户继承实现）"""
+
+        # 撤销之前发出的尚未成交的委托（包括限价单和停止单）
+        for orderID in self.orderList:
+            self.cancelOrder(orderID)
+        self.orderList = []
+        #重新设置止损点位
+        # 持有多头仓位
+        if abs(self.pos)>0 :
+            self.holdTime = self.holdTime + 1
+
+        #止赢出局
+        if self.pos > 0 and bar.close > self.kkUp:
+            orderID = self.sell(self.kkUp-5, abs(self.pos))
+            self.orderList.append(orderID)
+        elif self.pos < 0 and bar.close < self.kkDown:
+            orderID = self.cover(self.kkDown+5, abs(self.pos))
+            self.orderList.append(orderID)
+
+        
+        if self.pos > 0:
+            # 计算多头持有期内的最高价，以及重置最低价
+            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
+            self.intraTradeLow = min(self.intraTradeLow, bar.low)
+            # 计算多头移动止损
+            #longStop = self.intraTradeHigh * (1-self.trailingPercent/100)
+
+            longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
+            orderID = self.sell(longStop, abs(self.pos), stop=True)
+            self.orderList.append(orderID)
+            
+        # 持有空头仓位
+        elif self.pos < 0:
+            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
+            self.intraTradeLow = min(self.intraTradeLow, bar.low)
+            
+            # 计算空头移动止损
+            shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            orderID = self.cover(shortStop, abs(self.pos), stop=True)
+            self.orderList.append(orderID)
+
+        
+        
+
         # 如果当前是一个5分钟走完
         if bar.datetime.minute % 15 == 0:
             # 如果已经有聚合5分钟K线
@@ -197,7 +245,7 @@ class KkStrategy(CtaTemplate):
         self.lowArray[-1] = bar.low
     
         self.bufferCount += 1
-        if self.bufferCount < self.bufferSize:
+        if self.bufferCount < self.bufferSize*2:
             return
     
         # 计算指标数值
@@ -207,7 +255,8 @@ class KkStrategy(CtaTemplate):
                                   self.kkLength)[-1]
 
         self.kkMidLast = self.kkMid
-        self.kkMid = talib.MA(self.closeArray, self.kkLength)[-1]
+        #用更长点周期来减少风险
+        self.kkMid = talib.MA(self.closeArray, self.kkLength*1.1)[-1]
         self.kkUp = self.kkMid + self.atrValue * self.kkDev
         self.kkDown = self.kkMid - self.atrValue * self.kkDev
     
@@ -229,23 +278,24 @@ class KkStrategy(CtaTemplate):
 
         # 最后半小时平仓
         timeA = datetime.strptime(bar.time, "%H:%M:%S")
-        timeBegin = datetime.strptime("09:30:00", "%H:%M:%S")
-        timeOpenEnd = datetime.strptime("10:30:00", "%H:%M:%S")
+        timeBegin = datetime.strptime("09:00:00", "%H:%M:%S")
+        timeOpenEnd = datetime.strptime("15:00:00", "%H:%M:%S")
         timeStop = datetime.strptime("14:30:00", "%H:%M:%S")
 
-        
-
-        # if timeA < timeBegin or timeA > timeStop:
-        #     #平仓
-        #     if self.pos > 0:
-        #         orderID = self.sell(bar.close -5, abs(self.pos), stop=True)
-        #         self.orderList.append(orderID)
-        #     if self.pos < 0:
-        #         orderID = self.cover(bar.close + 5, abs(self.pos), stop=True)
-        #         self.orderList.append(orderID)
+        #周五最后半小时平仓
+        if datetime.strptime(bar.date, "%Y%m%d").weekday() == 4:
+            if timeA < timeBegin or timeA > timeStop:
+                #平仓
+                if self.pos > 0:
+                    orderID = self.sell(bar.close -5, abs(self.pos))
+                    self.orderList.append(orderID)
+                if self.pos < 0:
+                    orderID = self.cover(bar.close + 5, abs(self.pos))
+                    self.orderList.append(orderID)
                 
 
-        if self.pos == 0:
+        if self.pos == 0 and self.atrValue/bar.close > 0.002:
+            #重置
             self.intraTradeHigh = bar.high
             self.intraTradeLow = bar.low
 
@@ -261,31 +311,6 @@ class KkStrategy(CtaTemplate):
                     orderID = self.buy(bar.close+5, self.fixedSize)
                     self.orderList.append(orderID)
 
-                # 持有多头仓位
-        elif self.pos > 0:
-            # 计算多头持有期内的最高价，以及重置最低价
-            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
-            self.intraTradeLow = min(self.intraTradeLow, bar.low)
-            # 计算多头移动止损
-            #longStop = self.intraTradeHigh * (1-self.trailingPercent/100)
-            longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,(self.intraTradeHigh - self.intraTradeLow)*0.3)
-            # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
-            #print("current:cover", bar.close," ", longStop)
-            orderID = self.sell(longStop, abs(self.pos), stop=True)
-            self.orderList.append(orderID)
-
-        # 持有空头仓位
-        elif self.pos < 0:
-            self.intraTradeLow = min(self.intraTradeLow, bar.low)
-            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
-
-            #shortStop = self.intraTradeLow * (1+self.trailingPercent/100)
-            #print("current:sell", bar.close," ", shortStop)
-            shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.3)
-            orderID = self.cover(shortStop, abs(self.pos), stop=True)
-            self.orderList.append(orderID)
-                
-    
         # 发出状态更新事件
         self.putEvent()        
 
@@ -297,7 +322,6 @@ class KkStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onTrade(self, trade):
         # 多头开仓成交后，撤消空头委托
-        #print(trade.__dict__)
         if self.pos > 0:
             self.cancelOrder(self.shortOrderID)
             if self.buyOrderID in self.orderList:
@@ -305,8 +329,9 @@ class KkStrategy(CtaTemplate):
             if self.shortOrderID in self.orderList:
                 self.orderList.remove(self.shortOrderID)
             #添加止损设置
-            #orderID = self.short(trade.price - self.atrValue*0.5, abs(self.pos), stop=True)
-            #self.orderList.append(orderID)
+            #orderID = self.sell(trade.price - self.atrValue*0.5, abs(self.pos), stop=True)
+            orderID = self.sell(trade.price - self.atrValue*self.stopLossPercent, abs(self.pos), stop=True)
+            self.orderList.append(orderID)
 
         # 反之同样
         elif self.pos < 0:
@@ -316,9 +341,22 @@ class KkStrategy(CtaTemplate):
             if self.shortOrderID in self.orderList:
                 self.orderList.remove(self.shortOrderID)
             #添加止损设置
-            #orderID = self.buy(trade.price + self.atrValue*0.5, abs(self.pos), stop=True)
-            #self.orderList.append(orderID)
+            #orderID = self.cover(trade.price + self.atrValue*0.5, abs(self.pos), stop=True)
+            orderID = self.cover(trade.price + self.atrValue*self.stopLossPercent, abs(self.pos), stop=True)
+            self.orderList.append(orderID)
         
+        
+        if abs(self.pos) > 0:
+            print("--------------",self.tradeIndex,"-----------------------")
+            print(trade.__dict__)
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+        else:
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+            print("Hold minutes: ", self.holdTime," ATR ", self.atrValue)
+            self.holdTime = 0
+            self.tradeIndex += 1
+            
+
         # 发出状态更新事件
         self.putEvent()
         
@@ -355,16 +393,17 @@ if __name__ == '__main__':
     engine.setBacktestingMode(engine.BAR_MODE)
 
     # 设置回测用的数据起始日期
-    engine.setStartDate('20150601')
+    engine.setStartDate('20140601')
     
     # 设置产品相关参数
-    #engine.setSlippage(0.2)     # 股指1跳
-    #engine.setRate(0.3/10000)   # 万0.3
-    #engine.setSize(300)         # 股指合约大小        
-    engine.setSlippage(0.1)
+    # engine.setSlippage(0.2)     # 股指1跳
+    # engine.setRate(0.3/10000)   # 万0.3
+    # engine.setSize(300)         # 股指合约大小        
+    # engine.setDatabase(MINUTE_DB_NAME, 'RB0000')
+
+    engine.setSlippage(1)
     engine.setRate(5/10000)
     engine.setSize(10) 
-    
     # 设置使用的历史数据库
     engine.setDatabase(MINUTE_DB_NAME, 'RB0000')
     
