@@ -300,7 +300,7 @@ class KkStrategy(CtaTemplate):
             self.intraTradeLow = bar.low
 
             #9:30-14:00 开仓时间
-            if timeA < timeBegin or timeA > timeOpenEnd:
+            if timeA > timeBegin and timeA < timeOpenEnd:
                 if bar.close > self.kkUp and self.kkMidLast>self.kkMid:
                     #print("short", bar.close)
                     orderID = self.short(bar.close-5, self.fixedSize)
