@@ -16,7 +16,7 @@ from ctpGateway.vnctpmd import MdApi
 from ctpGateway.vnctptd import TdApi
 from ctpGateway.ctpDataType import *
 from vtGateway import *
-from language import text
+from language import text as text
 
 
 # 以下为一些VT类型和CTP类型的映射字典
