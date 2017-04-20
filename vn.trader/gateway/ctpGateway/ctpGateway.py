@@ -12,11 +12,11 @@ import json
 from copy import copy
 from datetime import datetime
 
-from ctpGateway.vnctpmd import MdApi
-from ctpGateway.vnctptd import TdApi
-from ctpGateway.ctpDataType import *
+from gateway.ctpGateway.vnctpmd import MdApi
+from gateway.ctpGateway.vnctptd import TdApi
+from gateway.ctpGateway.ctpDataType import *
 from vtGateway import *
-from ctpGateway.language import text
+from gateway.ctpGateway.language import text
 
 
 # 以下为一些VT类型和CTP类型的映射字典
