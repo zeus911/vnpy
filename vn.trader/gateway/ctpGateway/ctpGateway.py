@@ -246,7 +246,7 @@ class CtpMdApi(MdApi):
     def onFrontConnected(self):
         """服务器连接"""
         self.connectionStatus = True
-        
+        print(text)
         self.writeLog(text.DATA_SERVER_CONNECTED)
         
         self.login()
