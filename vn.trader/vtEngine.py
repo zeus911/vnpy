@@ -90,6 +90,8 @@ class MainEngine(object):
     #----------------------------------------------------------------------
     def subscribe(self, subscribeReq, gatewayName):
         """订阅特定接口的行情"""
+        print(gatewayName)
+        print(self.gatewayDict)
         if gatewayName in self.gatewayDict:
             gateway = self.gatewayDict[gatewayName]
             gateway.subscribe(subscribeReq)

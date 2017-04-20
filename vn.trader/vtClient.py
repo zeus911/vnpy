@@ -67,6 +67,7 @@ class ClientEngine(object):
     #----------------------------------------------------------------------
     def subscribe(self, subscribeReq, gatewayName):
         """订阅特定接口的行情"""
+        print(gatewayName)
         return self.client.subscribe(subscribeReq, gatewayName)
         
     #----------------------------------------------------------------------
