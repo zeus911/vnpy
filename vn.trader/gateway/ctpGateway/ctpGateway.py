@@ -330,39 +330,39 @@ class CtpMdApi(MdApi):
     def onRtnDepthMarketData(self, data):
         """行情推送"""
         # 忽略成交量为0的无效tick数据
-        if not data[b'Volume']:
+        if not data['Volume']:
             return
         
         # 创建对象
         tick = VtTickData()
         tick.gatewayName = self.gatewayName
         
-        tick.symbol = data[b'InstrumentID'].decode()
-        tick.exchange = exchangeMapReverse.get(data[b'ExchangeID'].decode(), u'未知')
+        tick.symbol = data['InstrumentID'].decode()
+        tick.exchange = exchangeMapReverse.get(data['ExchangeID'].decode(), u'未知')
         tick.vtSymbol = tick.symbol #'.'.join([tick.symbol, EXCHANGE_UNKNOWN])
         
-        tick.lastPrice = data[b'LastPrice']
-        tick.volume = data[b'Volume']
-        tick.openInterest = data[b'OpenInterest']
-        tick.time = '.'.join([data[b'UpdateTime'], str(int(data[b'UpdateMillisec']/100))])
+        tick.lastPrice = data['LastPrice']
+        tick.volume = data['Volume']
+        tick.openInterest = data['OpenInterest']
+        tick.time = '.'.join([data['UpdateTime'], str(int(data['UpdateMillisec']/100))])
         
         # 这里由于交易所夜盘时段的交易日数据有误，所以选择本地获取
         #tick.date = data['TradingDay']
         tick.date = datetime.now().strftime('%Y%m%d')   
         
-        tick.openPrice = data[b'OpenPrice']
-        tick.highPrice = data[b'HighestPrice']
-        tick.lowPrice = data[b'LowestPrice']
-        tick.preClosePrice = data[b'PreClosePrice']
+        tick.openPrice = data['OpenPrice']
+        tick.highPrice = data['HighestPrice']
+        tick.lowPrice = data['LowestPrice']
+        tick.preClosePrice = data['PreClosePrice']
         
-        tick.upperLimit = data[b'UpperLimitPrice']
+        tick.upperLimit = data['UpperLimitPrice']
         tick.lowerLimit = data['LowerLimitPrice']
         
         # CTP只有一档行情
-        tick.bidPrice1 = data[b'BidPrice1']
-        tick.bidVolume1 = data[b'BidVolume1']
-        tick.askPrice1 = data[b'AskPrice1']
-        tick.askVolume1 = data[b'AskVolume1']
+        tick.bidPrice1 = data['BidPrice1']
+        tick.bidVolume1 = data['BidVolume1']
+        tick.askPrice1 = data['AskPrice1']
+        tick.askVolume1 = data['AskVolume1']
         
         self.gateway.onTick(tick)
         
