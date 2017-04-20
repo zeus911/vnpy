@@ -49,7 +49,7 @@ class MainEngine(object):
     @property
     def ctaEngine(self):
         """ return ctaEngine """
-        from ctaAlgo.ctaEngine import CtaEngine
+        from ctaStrategy.ctaEngine import CtaEngine
         if self._ctaEngine == None:
             self._ctaEngine = CtaEngine(self, self.eventEngine)
         return self._ctaEngine
@@ -72,6 +72,7 @@ class MainEngine(object):
     #----------------------------------------------------------------------
     def addGateway(self, gateway, gatewayName=None):
         """创建接口"""
+        print("addGateWay: ",gateway)
         self.gatewayDict[gatewayName] = gateway(self.eventEngine, gatewayName)
         
     #----------------------------------------------------------------------
