@@ -57,7 +57,7 @@ class MainEngine(object):
                 if gatewayModule.gatewayQryEnabled:
                     self.gatewayDict[gatewayModule.gatewayName].setQryEnabled(True)
             except Exception, e:
-                print e
+                print(e)
 
     #----------------------------------------------------------------------
     def addGateway(self, gateway, gatewayName=None):
