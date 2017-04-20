@@ -337,7 +337,7 @@ class CtpMdApi(MdApi):
         tick = VtTickData()
         tick.gatewayName = self.gatewayName
         
-        tick.symbol = data['InstrumentID'].decode()
+        tick.symbol = data['InstrumentID']
         tick.exchange = exchangeMapReverse.get(data['ExchangeID'].decode(), u'未知')
         tick.vtSymbol = tick.symbol #'.'.join([tick.symbol, EXCHANGE_UNKNOWN])
         
