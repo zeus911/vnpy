@@ -7,6 +7,7 @@ import traceback
 # 默认设置
 from language.chinese import text
 
+print(text.CONFIG_KEY_MISSING)
 # 获取目录上级路径
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 SETTING_FILENAME = 'VT_setting.json'
