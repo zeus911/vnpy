@@ -452,7 +452,7 @@ class TradingWidget(QtWidgets.QFrame):
 
         # 价格留待更新后由用户输入，防止有误操作
 
-class OrderConfirmProgess(QtGui.QDialog):
+class OrderConfirmProgess(QtWidgets.QDialog):
     
     def __init__(self,mainEngine, eventEngine, symbol, pos, direction, callback):
         super().__init__()
