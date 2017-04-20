@@ -13,7 +13,7 @@ from vtFunction import loadMongoSetting
 from language import text
 
 from gateway import GATEWAY_DICT
-from gateway.ctpGateway import ctpGateway #avoid 'module' not callable
+import ctpGateway #avoid 'module' not callable
 from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
