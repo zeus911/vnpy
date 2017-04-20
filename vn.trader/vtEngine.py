@@ -1,5 +1,3 @@
-# encoding: UTF-8
-
 import shelve
 from collections import OrderedDict
 from datetime import datetime
@@ -10,8 +8,10 @@ from pymongo.errors import ConnectionFailure
 from eventEngine import *
 from vtGateway import *
 from vtFunction import loadMongoSetting
+from language import text
 
-#from ctaAlgo.ctaEngine import CtaEngine
+from gateway import GATEWAY_DICT
+from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
 
@@ -40,32 +40,24 @@ class MainEngine(object):
         self.initGateway()
 
         # 扩展模块
-        #self.ctaEngine = CtaEngine(self, self.eventEngine)
+        self.ctaEngine = CtaEngine(self, self.eventEngine)
         self.drEngine = DrEngine(self, self.eventEngine)
         self.rmEngine = RmEngine(self, self.eventEngine)
         
-    #----------------------------------------------------------------------
-    @property
-    def ctaEngine(self):
-        """ return ctaEngine """
-        from ctaAlgo.ctaEngine import CtaEngine
-        if self._ctaEngine == None:
-            self._ctaEngine = CtaEngine(self, self.eventEngine)
-        return self._ctaEngine
-
     #----------------------------------------------------------------------
     def initGateway(self):
         """初始化接口对象"""
         # 用来保存接口对象的字典
         self.gatewayDict = OrderedDict()
         
-        # 创建我们想要接入的接口对象
-        try:
-            from ctpGateway.ctpGateway import CtpGateway
-            self.addGateway(CtpGateway, 'CTP')
-            self.gatewayDict['CTP'].setQryEnabled(True)
-        except Exception as e:
-            print(e)
+        # 遍历接口字典并自动创建所有的接口对象
+        for gatewayModule in GATEWAY_DICT.values():
+            try:
+                self.addGateway(gatewayModule.gateway, gatewayModule.gatewayName)
+                if gatewayModule.gatewayQryEnabled:
+                    self.gatewayDict[gatewayModule.gatewayName].setQryEnabled(True)
+            except Exception, e:
+                print e
 
     #----------------------------------------------------------------------
     def addGateway(self, gateway, gatewayName=None):
@@ -78,11 +70,11 @@ class MainEngine(object):
         if gatewayName in self.gatewayDict:
             gateway = self.gatewayDict[gatewayName]
             gateway.connect()
-
+            
             # 接口连接后自动执行数据库连接的任务
             self.dbConnect()
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))
         
     #----------------------------------------------------------------------
     def subscribe(self, subscribeReq, gatewayName):
@@ -91,20 +83,20 @@ class MainEngine(object):
             gateway = self.gatewayDict[gatewayName]
             gateway.subscribe(subscribeReq)
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)        
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))        
         
     #----------------------------------------------------------------------
     def sendOrder(self, orderReq, gatewayName):
         """对特定接口发单"""
         # 如果风控检查失败则不发单
         if not self.rmEngine.checkRisk(orderReq):
-            return ''    
-        
+            return ''
+
         if gatewayName in self.gatewayDict:
             gateway = self.gatewayDict[gatewayName]
             return gateway.sendOrder(orderReq)
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)        
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))        
     
     #----------------------------------------------------------------------
     def cancelOrder(self, cancelOrderReq, gatewayName):
@@ -113,16 +105,17 @@ class MainEngine(object):
             gateway = self.gatewayDict[gatewayName]
             gateway.cancelOrder(cancelOrderReq)
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)        
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))
+            
         
     #----------------------------------------------------------------------
-    def qryAccont(self, gatewayName):
+    def qryAccount(self, gatewayName):
         """查询特定接口的账户"""
         if gatewayName in self.gatewayDict:
             gateway = self.gatewayDict[gatewayName]
             gateway.qryAccount()
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)        
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))        
         
     #----------------------------------------------------------------------
     def qryPosition(self, gatewayName):
@@ -131,7 +124,7 @@ class MainEngine(object):
             gateway = self.gatewayDict[gatewayName]
             gateway.qryPosition()
         else:
-            self.writeLog(u'接口不存在：%s' %gatewayName)        
+            self.writeLog(text.GATEWAY_NOT_EXIST.format(gateway=gatewayName))        
         
     #----------------------------------------------------------------------
     def exit(self):
@@ -172,14 +165,14 @@ class MainEngine(object):
                 # 调用server_info查询服务器状态，防止服务器异常并未连接成功
                 self.dbClient.server_info()
 
-                self.writeLog(u'MongoDB连接成功')
+                self.writeLog(text.DATABASE_CONNECTING_COMPLETED)
                 
                 # 如果启动日志记录，则注册日志事件监听函数
                 if logging:
                     self.eventEngine.register(EVENT_LOG, self.dbLogging)
                     
             except ConnectionFailure:
-                self.writeLog(u'MongoDB连接失败')
+                self.writeLog(text.DATABASE_CONNECTING_FAILED)
     
     #----------------------------------------------------------------------
     def dbInsert(self, dbName, collectionName, d):
@@ -189,7 +182,7 @@ class MainEngine(object):
             collection = db[collectionName]
             collection.insert_one(d)
         else:
-            self.writeLog(u'数据插入失败，MongoDB没有连接')
+            self.writeLog(text.DATA_INSERT_FAILED)
     
     #----------------------------------------------------------------------
     def dbQuery(self, dbName, collectionName, d):
@@ -203,7 +196,7 @@ class MainEngine(object):
             else:
                 return []
         else:
-            self.writeLog(u'数据查询失败，MongoDB没有连接')   
+            self.writeLog(text.DATA_QUERY_FAILED)   
             return []
         
     #----------------------------------------------------------------------
@@ -214,7 +207,7 @@ class MainEngine(object):
             collection = db[collectionName]
             collection.replace_one(flt, d, upsert)
         else:
-            self.writeLog(u'数据更新失败，MongoDB没有连接')        
+            self.writeLog(text.DATA_UPDATE_FAILED)        
             
     #----------------------------------------------------------------------
     def dbLogging(self, event):
@@ -348,6 +341,3 @@ class DataEngine(object):
         """注册事件监听"""
         self.eventEngine.register(EVENT_CONTRACT, self.updateContract)
         self.eventEngine.register(EVENT_ORDER, self.updateOrder)
-        
-    
-    
