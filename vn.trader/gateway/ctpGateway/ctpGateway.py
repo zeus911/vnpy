@@ -576,7 +576,7 @@ class CtpTdApi(TdApi):
         order.symbol = data[b'InstrumentID'].decode()
         order.exchange = exchangeMapReverse[data[b'ExchangeID']]
         order.vtSymbol = order.symbol
-        order.orderID = data[b'OrderRef']
+        order.orderID = data[b'OrderRef'].decode()
         order.vtOrderID = '.'.join([self.gatewayName, order.orderID])        
         order.direction = directionMapReverse.get(data[b'Direction'], DIRECTION_UNKNOWN)
         order.offset = offsetMapReverse.get(data[b'CombOffsetFlag'], OFFSET_UNKNOWN)
@@ -1057,7 +1057,7 @@ class CtpTdApi(TdApi):
         order.symbol = data[b'InstrumentID']
         order.exchange = exchangeMapReverse[data[b'ExchangeID'].decode()]
         order.vtSymbol = order.symbol
-        order.orderID = data[b'OrderRef']
+        order.orderID = data[b'OrderRef'].decode()
         order.vtOrderID = '.'.join([self.gatewayName, order.orderID])        
         order.direction = directionMapReverse.get(data[b'Direction'], DIRECTION_UNKNOWN)
         order.offset = offsetMapReverse.get(data[b'CombOffsetFlag'], OFFSET_UNKNOWN)
