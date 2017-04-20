@@ -5,8 +5,7 @@ import os
 import traceback
 
 # 默认设置
-#from language.chinese import text as text
-import language.chinese.text
+from chinese import text
 
 # 获取目录上级路径
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
@@ -18,7 +17,7 @@ try:
     f = file(SETTING_FILENAME)
     setting = json.load(f)
     if setting['language'] == 'english':
-        from language.english import text
+        from english import text
     f.close()
 except:
     traceback.print_exc()
