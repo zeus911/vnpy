@@ -7,7 +7,7 @@
 	"automongodb": true,
 
 	"darkStyle": true,
-	"language": "Chinese",
+	"language": "chinese",
 
 	"CTP_connect": "./gateway/ctpGateway/CTP_connect.json",
 	"autoctp": true,
