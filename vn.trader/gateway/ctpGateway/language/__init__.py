@@ -6,7 +6,7 @@ import traceback
 
 # 默认设置
 #from language.chinese import text as text
-import language.chinese
+import language.chinese.text
 
 # 获取目录上级路径
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
