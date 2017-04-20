@@ -13,7 +13,6 @@ from vtFunction import loadMongoSetting
 from language import text
 
 from gateway import GATEWAY_DICT
-import ctpGateway #avoid 'module' not callable
 from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
@@ -74,7 +73,7 @@ class MainEngine(object):
     def addGateway(self, gateway, gatewayName=None):
         """创建接口"""
         print("addGateWay: ",gateway)
-        self.gatewayDict[gatewayName] = gateway(self.eventEngine, gatewayName)
+        self.gatewayDict[gatewayName] = ctpGateway.ctpGateway(self.eventEngine, gatewayName)
         
     #----------------------------------------------------------------------
     def connect(self, gatewayName):
