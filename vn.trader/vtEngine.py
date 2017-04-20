@@ -74,7 +74,7 @@ class MainEngine(object):
         """创建接口"""
         print("addGateWay: ",gateway1)
 
-        self.gatewayDict[gatewayName] = ctpGateway.ctpGateway(self.eventEngine, gatewayName)
+        self.gatewayDict[gatewayName] = ctpGateway(self.eventEngine, gatewayName)
         
     #----------------------------------------------------------------------
     def connect(self, gatewayName):
