@@ -12,7 +12,7 @@ from vtGateway import *
 from vtFunction import loadMongoSetting
 from language import text
 
-from gateway import GATEWAY_DICT
+from gateway import *
 from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
