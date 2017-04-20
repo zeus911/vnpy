@@ -133,4 +133,5 @@ class CtaTickData(object):
         self.askVolume2 = EMPTY_INT
         self.askVolume3 = EMPTY_INT
         self.askVolume4 = EMPTY_INT
-        self.askVolume5 = EMPTY_INT    
+        self.askVolume5 = EMPTY_INT  
+        
