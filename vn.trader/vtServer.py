@@ -108,11 +108,11 @@ def runServer():
         # 进入主循环
         while True:
             printLog(u'input "exit" to exit')
-            if raw_input() != 'exit':
+            if input() != 'exit':
                 continue
 
             printLog(u'confirm？yes|no')
-            if raw_input() == 'yes':
+            if input() == 'yes':
                 break
 
     server.stopServer()
