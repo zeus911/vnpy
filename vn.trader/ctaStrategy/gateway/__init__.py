@@ -28,6 +28,7 @@ for root, subdirs, files in os.walk(path):
             try:
                 # 使用importlib动态载入模块，并保存到字典中
                 module = importlib.import_module(moduleName)
+                print(module)
                 GATEWAY_DICT[module.gatewayName] = module
             except:
                 traceback.print_exc()
