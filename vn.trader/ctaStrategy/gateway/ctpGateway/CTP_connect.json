@@ -1,9 +1,0 @@
-{
-    "brokerID": "9999", 
-    "tdAddress": "tcp://180.168.146.187:10000", 
-    "password": "simnowpwd", 
-    "mdAddress": "tcp://180.168.212.228:41213", 
-    "userID": "080895",
-    "1tdAddress": "tcp://180.168.146.187:10030", 
-    "1mdAddress": "tcp://180.168.146.187:10031"
-}
