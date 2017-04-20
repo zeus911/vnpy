@@ -4,8 +4,7 @@ import json
 import os
 
 # 默认设置
-#from language.chinese import text, constant
-import language.chinese
+from language.chinese import text, constant as text, constant
 
 # 获取目录上级路径
 path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
