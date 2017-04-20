@@ -4,7 +4,7 @@ import json
 import os
 
 # 默认设置
-#from language.chinese import text, constant
+from language.chinese import text, constant
 import language.chinese
 
 # 获取目录上级路径
