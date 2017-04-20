@@ -1,0 +1,22 @@
+{
+    "PriceCoe": 1,
+    "buyPrice": [
+        1
+    ],
+    "closeFirst": true,
+    "direction": "long",
+    "isFilter": true,
+    "isStop": false,
+    "maxStpLos": 10,
+    "openUnit": 2,
+    "postoday": {
+        "rb1710": 10
+    },
+    "receivers": [
+        "kastolo@tom.com"
+    ],
+    "slippage": 1,
+    "stoptime": "0",
+    "stpProfit": 20,
+    "var": 10
+}

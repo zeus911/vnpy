@@ -4,7 +4,6 @@ import sys
 import os
 import ctypes
 import platform
-import importlib
 
 import vtPath
 from uiMainWindow import *
@@ -12,10 +11,9 @@ from uiMainWindow import *
 from eventEngine import *
 from vnrpc import RpcClient
 
-from ctaAlgo.ctaEngine import CtaEngine
+from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
-
 
 
 # 文件路径名
@@ -60,7 +58,7 @@ class ClientEngine(object):
         self.ctaEngine = CtaEngine(self, self.eventEngine)
         self.drEngine = DrEngine(self, self.eventEngine)
         self.rmEngine = RmEngine(self, self.eventEngine)
-
+    
     #----------------------------------------------------------------------  
     def connect(self, gatewayName):
         """连接特定名称的接口"""
@@ -153,36 +151,34 @@ class ClientEngine(object):
         """查询所有的接口名称"""
         return self.client.getAllGatewayNames()
 
+    # ----------------------------------------------------------------------
+    def getGateway4sysMenu(self):
+        return self.client.getGateway4sysMenu()
 
 #----------------------------------------------------------------------
 def main():
     """客户端主程序入口"""
     # 重载sys模块，设置默认字符串编码方式为utf8
-    #reload(sys)
-    #sys.setdefaultencoding('utf8')    
-    #importlib.reload(sys)
+    # reload(sys)
+    # sys.setdefaultencoding('utf8')    
     
     # 设置Windows底部任务栏图标
     if 'Windows' in platform.uname() :
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('vn.trader')    
-    
+
     # 创建事件引擎
     eventEngine = EventEngine()
     eventEngine.start(timer=False)
 
     # 创建客户端
-    f = open(SETTING_FILENAME)
-    setting = json.load(f)
-    reqAddress = 'tcp://' + setting['mongoHost'] + ':2014'
-    subAddress = 'tcp://' + setting['mongoHost'] + ':0602'
-    #reqAddress = 'tcp://192.168.31.45:2014'
-    #subAddress = 'tcp://192.168.31.45:0602'
+    reqAddress = 'tcp://192.168.31.45:2014'
+    subAddress = 'tcp://192.168.31.45:0602'
     client = VtClient(reqAddress, subAddress, eventEngine)
 
     client.subscribeTopic('')
     client.start()
-    
-    # 初始化Qt应用对象
+
+     # 初始化Qt应用对象
     app = QtWidgets.QApplication(sys.argv)
     app.setWindowIcon(QtGui.QIcon(ICON_FILENAME))
     app.setFont(BASIC_FONT)
@@ -212,5 +208,4 @@ def main():
 
 if __name__ == '__main__':
     main()    
-    
-    
+
