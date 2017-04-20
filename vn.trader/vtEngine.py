@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 import shelve
 from collections import OrderedDict
 from datetime import datetime
@@ -252,8 +254,21 @@ class MainEngine(object):
     def getAllGatewayNames(self):
         """查询引擎中所有可用接口的名称"""
         return list(self.gatewayDict.keys())
-        
-    
+
+    # ----------------------------------------------------------------------
+    def getGateway4sysMenu(self):
+        """
+        :return:
+        """
+
+        toDict = lambda g: {
+            'gatewayType': g.gatewayType,
+            'gatewayName': g.gatewayName,
+            'gatewayDisplayName': g.gatewayDisplayName,
+        }
+        return [
+            toDict(g) for g in GATEWAY_DICT.values() if hasattr(g, 'gatewayType')
+        ]
 
 ########################################################################
 class DataEngine(object):
