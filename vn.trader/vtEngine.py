@@ -12,7 +12,7 @@ from vtGateway import *
 from vtFunction import loadMongoSetting
 from language import text
 
-from gateway import *
+from gateway import GATEWAY_DICT
 from ctaStrategy.ctaEngine import CtaEngine
 from dataRecorder.drEngine import DrEngine
 from riskManager.rmEngine import RmEngine
@@ -70,11 +70,10 @@ class MainEngine(object):
                 print(e)
 
     #----------------------------------------------------------------------
-    def addGateway(self, gateway1, gatewayName=None):
+    def addGateway(self, gateway, gatewayName=None):
         """创建接口"""
-        print("addGateWay: ",gateway1)
-
-        self.gatewayDict[gatewayName] = ctpGateway(self.eventEngine, gatewayName)
+        print("addGateWay: ",gateway)
+        self.gatewayDict[gatewayName] = gateway(self.eventEngine, gatewayName)
         
     #----------------------------------------------------------------------
     def connect(self, gatewayName):
@@ -91,8 +90,6 @@ class MainEngine(object):
     #----------------------------------------------------------------------
     def subscribe(self, subscribeReq, gatewayName):
         """订阅特定接口的行情"""
-        print(gatewayName)
-        print(self.gatewayDict)
         if gatewayName in self.gatewayDict:
             gateway = self.gatewayDict[gatewayName]
             gateway.subscribe(subscribeReq)
