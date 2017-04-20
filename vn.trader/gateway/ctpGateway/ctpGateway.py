@@ -338,7 +338,7 @@ class CtpMdApi(MdApi):
         tick.gatewayName = self.gatewayName
         
         tick.symbol = data['InstrumentID']
-        tick.exchange = exchangeMapReverse.get(data['ExchangeID'].decode(), u'未知')
+        tick.exchange = exchangeMapReverse.get(data['ExchangeID'], u'未知')
         tick.vtSymbol = tick.symbol #'.'.join([tick.symbol, EXCHANGE_UNKNOWN])
         
         tick.lastPrice = data['LastPrice']
