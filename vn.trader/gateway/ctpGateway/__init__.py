@@ -1,7 +1,7 @@
 # encoding: UTF-8
 
 import vtConstant
-import ctpGateway as gateway
+import ctpGateway.ctpGateway as gateway
 
 gatewayName = 'CTP'
 gatewayDisplayName = gatewayName
