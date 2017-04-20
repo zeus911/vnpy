@@ -40,10 +40,18 @@ class MainEngine(object):
         self.initGateway()
 
         # 扩展模块
-        self.ctaEngine = CtaEngine(self, self.eventEngine)
+        #self.ctaEngine = CtaEngine(self, self.eventEngine)
         self.drEngine = DrEngine(self, self.eventEngine)
         self.rmEngine = RmEngine(self, self.eventEngine)
-        
+    #----------------------------------------------------------------------
+    @property
+    def ctaEngine(self):
+        """ return ctaEngine """
+        from ctaAlgo.ctaEngine import CtaEngine
+        if self._ctaEngine == None:
+            self._ctaEngine = CtaEngine(self, self.eventEngine)
+        return self._ctaEngine
+
     #----------------------------------------------------------------------
     def initGateway(self):
         """初始化接口对象"""
