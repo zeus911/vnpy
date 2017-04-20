@@ -1,10 +1,17 @@
 {
 	"fontSize": 12,
 
-	"mongoHost": "192.168.31.45",
-	"mongoHost2": "192.168.1.105",
+	"mongoHost": "localhost",
 	"mongoPort": 27017,
 	"mongoLogging": true,
-	"language":"Chinese",
-	"darkStyle": true
+	"automongodb": false,
+
+	"darkStyle": true,
+	"language": "Chinese",
+
+	"CTP_connect": "./gateway/ctpGateway/CTP_connect.json",
+	"autoctp": false,
+
+	"autoshutdown": false
+
 }

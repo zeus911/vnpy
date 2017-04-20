@@ -10,6 +10,7 @@ from PyQt5 import QtGui, QtCore,QtWidgets
 from eventEngine import *
 from vtFunction import *
 from vtGateway import *
+import vtText
 
 
 #----------------------------------------------------------------------
@@ -1151,4 +1152,50 @@ class ContractMonitor(BasicMonitor):
         super(ContractMonitor, self).show()
         self.refresh()
     
+      #----------------------------------------------------------------------
+    def setFilterContent(self, content):
+        """设置过滤字符串"""
+        self.filterContent = content
     
+
+########################################################################
+class ContractManager(QtWidgets.QWidget):
+    """合约管理组件"""
+
+    #----------------------------------------------------------------------
+    def __init__(self, mainEngine, parent=None):
+        """Constructor"""
+        super(ContractManager, self).__init__(parent=parent)
+        
+        self.mainEngine = mainEngine
+        
+        self.initUi()
+    
+    #----------------------------------------------------------------------
+    def initUi(self):
+        """初始化界面"""
+        self.setWindowTitle(vtText.CONTRACT_SEARCH)
+        
+        self.lineFilter = QtGui.QLineEdit()
+        self.buttonFilter = QtGui.QPushButton(vtText.SEARCH)
+        self.buttonFilter.clicked.connect(self.filterContract)        
+        self.monitor = ContractMonitor(self.mainEngine)
+        self.monitor.refresh()
+        
+        hbox = QtGui.QHBoxLayout()
+        hbox.addWidget(self.lineFilter)
+        hbox.addWidget(self.buttonFilter)
+        hbox.addStretch()
+        
+        vbox = QtGui.QVBoxLayout()
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.monitor)
+        
+        self.setLayout(vbox)
+        
+    #----------------------------------------------------------------------
+    def filterContract(self):
+        """显示过滤后的合约"""
+        content = str(self.lineFilter.text())
+        self.monitor.setFilterContent(content)
+        self.monitor.refresh()  

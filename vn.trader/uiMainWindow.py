@@ -10,13 +10,6 @@ from dataRecorder.uiDrWidget import DrEngineManager
 from riskManager.uiRmWidget import RmEngineManager
 import vtText
 
-# 接口类型
-GATEWAYTYPE_EQUITY = 'equity'                   # 股票、ETF、债券
-GATEWAYTYPE_FUTURES = 'futures'                 # 期货、期权、贵金属
-GATEWAYTYPE_INTERNATIONAL = 'international'     # 外盘
-GATEWAYTYPE_BTC = 'btc'                         # 比特币
-GATEWAYTYPE_DATA = 'data'                       # 数据（非交易）
-
 ########################################################################
 class MainWindow(QtGui.QMainWindow):
     """主窗口"""
@@ -89,6 +82,7 @@ class MainWindow(QtGui.QMainWindow):
         ]
 
         gateways = self.mainEngine.getGateway4sysMenu()
+        print(gateways)
 
         # 模拟一个GateWay 实例
         for g in gateways:
