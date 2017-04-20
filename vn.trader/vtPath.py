@@ -17,6 +17,7 @@ MODULE_PATH = {}
 MODULE_PATH['CTA'] = os.path.join(ROOT_PATH, 'ctaStrategy')
 MODULE_PATH['RM'] = os.path.join(ROOT_PATH, 'riskManager')
 MODULE_PATH['DR'] = os.path.join(ROOT_PATH, 'dataRecorder')
+MODULE_PATH['GATEWAY'] = os.path.join(ROOT_PATH, 'ctaStrategy/gateway')
 
 # 添加到环境变量中
 for path in MODULE_PATH.values():
