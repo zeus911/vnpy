@@ -16,7 +16,7 @@ from ctpGateway.vnctpmd import MdApi
 from ctpGateway.vnctptd import TdApi
 from ctpGateway.ctpDataType import *
 from vtGateway import *
-from language import text as text
+import language
 
 
 # 以下为一些VT类型和CTP类型的映射字典
@@ -246,7 +246,6 @@ class CtpMdApi(MdApi):
     def onFrontConnected(self):
         """服务器连接"""
         self.connectionStatus = True
-        print(text)
         self.writeLog(text.DATA_SERVER_CONNECTED)
         
         self.login()
