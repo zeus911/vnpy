@@ -1,7 +1,7 @@
 {
 	"fontSize": 12,
 
-	"mongoHost": "192.168.1.106",
+	"mongoHost": "192.168.31.12",
 	"mongoPort": 27017,
 	"mongoLogging": true,
 	"automongodb": true,
