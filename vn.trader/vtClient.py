@@ -172,8 +172,8 @@ def main():
     eventEngine.start(timer=False)
 
     # 创建客户端
-    reqAddress = 'tcp://127.0.0.1:2014'
-    subAddress = 'tcp://127.0.0.1:0602'
+    reqAddress = 'tcp://192.168.31.45:2014'
+    subAddress = 'tcp://192.168.31.45:0602'
     client = VtClient(reqAddress, subAddress, eventEngine)
 
     client.subscribeTopic('')
