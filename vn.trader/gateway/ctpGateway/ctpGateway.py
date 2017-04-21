@@ -1054,7 +1054,7 @@ class CtpTdApi(TdApi):
         # 推送委托信息
         order = VtOrderData()
         order.gatewayName = self.gatewayName
-        order.symbol = data[b'InstrumentID']
+        order.symbol = data[b'InstrumentID'].decode()
         order.exchange = exchangeMapReverse[data[b'ExchangeID'].decode()]
         order.vtSymbol = order.symbol
         order.orderID = data[b'OrderRef'].decode()
