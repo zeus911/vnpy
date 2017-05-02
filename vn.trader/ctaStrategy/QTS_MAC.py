@@ -327,7 +327,7 @@ if __name__ == '__main__':
     engine.setSize(10) 
     
     # 设置使用的历史数据库
-    engine.setDatabase(MINUTE_DB_NAME, 'RB1710')
+    engine.setDatabase(MINUTE_DB_NAME, 'rb1710')
     
     # 在引擎中创建策略对象
     d = {}

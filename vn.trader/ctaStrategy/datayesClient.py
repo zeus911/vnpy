@@ -5,8 +5,9 @@
 
 import requests
 import json
+import os
 
-FILENAME = 'datayes.json'
+#FILENAME = 'datayes.json'
 HTTP_OK = 200
 
 
@@ -32,7 +33,7 @@ class DatayesClient(object):
         """载入配置"""
         try:
             path = os.path.abspath(os.path.dirname(__file__))
-            FILENAME = os.path.join(path, FILENAME)            
+            FILENAME = os.path.join(path, 'datayes.json')            
             f = file(FILENAME)
         except IOError:
             print u'%s无法打开配置文件' % self.name

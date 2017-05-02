@@ -1,19 +1,7 @@
 [
     {
-        "name": "double ema",
-        "className": "EmaDemoStrategy",
-        "vtSymbol": "rb1710"
-    },
-
-    {
-        "name": "atr rsi",
-        "className": "AtrRsiStrategy",
-        "vtSymbol": "rb1710"
-    },
-
-    {
-        "name": "king keltner",
-        "className": "KkStrategy",
+        "name": "Mean Value Reversal",
+        "className": "MVRStrategy",
         "vtSymbol": "rb1710"
     }
 ]

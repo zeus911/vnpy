@@ -36,6 +36,7 @@ class HistoryDataEngine(object):
         """Constructor"""
         host, port, logging = loadMongoSetting()
         
+        print(host)
         self.dbClient = pymongo.MongoClient(host, port)
         self.datayesClient = DatayesClient()
         
@@ -195,6 +196,7 @@ class HistoryDataEngine(object):
         params['instrumentID'] = symbol
         params['unit'] = 1
         
+        print(params)
         data = self.datayesClient.downloadData(path, params)
         
         if data:
@@ -204,7 +206,7 @@ class HistoryDataEngine(object):
             self.dbClient[MINUTE_DB_NAME][symbol].ensure_index([('datetime', pymongo.ASCENDING)], 
                                                                       unique=True)                
 
-            for d in data:
+            for d in data[0].get('barBodys'):
                 bar = CtaBarData()
                 bar.vtSymbol = symbol
                 bar.symbol = symbol
@@ -215,14 +217,16 @@ class HistoryDataEngine(object):
                     bar.low = d.get('lowestPrice', 0)
                     bar.close = d.get('closePrice', 0)
                     bar.date = today
+                    print(d)
                     bar.time = d.get('barTime', '')
-                    bar.datetime = datetime.strptime(bar.date + ' ' + bar.time, '%Y%m%d %H:%M')
+                    bar.datetime = datetime.strptime(bar.date + ' ' + bar.time + ':00', '%Y%m%d %H:%M:%S')
                     bar.volume = d.get('totalVolume', 0)
                     bar.openInterest = 0
                 except KeyError:
                     print (d)
                 
                 flt = {'datetime': bar.datetime}
+                print(flt)
                 self.dbClient[MINUTE_DB_NAME][symbol].update_one(flt, {'$set':bar.__dict__}, upsert=True)            
             
             print (u'%s下载完成' %symbol)
@@ -425,7 +429,7 @@ def loadTdxCsv(fileName, dbName, symbol):
         bar.high = float(d[3])
         bar.low = float(d[4])
         bar.close = float(d[5])
-        bar.date = datetime.strptime(d[0], '%Y/%m/%d').strftime('%Y%m%d')
+        bar.date = datetime.strptime(d[0], '%Y-%m-%d').strftime('%Y%m%d')
         bar.time = d[1][:2]+':'+d[1][2:4]+':00'
         bar.datetime = datetime.strptime(bar.date + ' ' + bar.time, '%Y%m%d %H:%M:%S')
         bar.volume = d[6]
@@ -443,11 +447,13 @@ def loadTBCsv(fileName, dbName, symbol):
         数据样本：
         //时间,开盘价,最高价,最低价,收盘价,成交量,持仓量
         2017/04/05 09:00,3200,3240,3173,3187,312690,2453850
+
+        20150105,0.0911,2572,2574,2571,2573,27744,2570474
     """
     import csv
     
     start = time()
-    print u'开始读取CSV文件%s中的数据插入到%s的%s中' %(fileName, dbName, symbol)
+    print (u'开始读取CSV文件%s中的数据插入到%s的%s中' %(fileName, dbName, symbol))
     
     # 锁定集合，并创建索引
     host, port, logging = loadMongoSetting()
@@ -459,26 +465,31 @@ def loadTBCsv(fileName, dbName, symbol):
     # 读取数据和插入到数据库
     reader = csv.reader(file(fileName, 'r'))
     for d in reader:
-        if len(d[0]) > 10:
+        if len(d[0]) == 8:
             bar = CtaBarData()
             bar.vtSymbol = symbol
             bar.symbol = symbol
             
-            bar.datetime = datetime.strptime(d[0], '%Y/%m/%d %H:%M')
+            # bar.datetime = datetime.strptime(d[0], '%Y/%m/%d %H:%M')
+            # bar.date = bar.datetime.date().strftime('%Y%m%d')
+            # bar.time = bar.datetime.time().strftime('%H:%M:%S')
+
+            deltaMinutes = float(d[1])*10000
+            bar.datetime = datetime.strptime(d[0],'%Y%m%d') + timedelta( hours = int(float(d[1])*100), minutes = int(float(d[1])*10000)%100 )
             bar.date = bar.datetime.date().strftime('%Y%m%d')
             bar.time = bar.datetime.time().strftime('%H:%M:%S')
             
-            bar.open = float(d[1])
-            bar.high = float(d[2])
-            bar.low = float(d[3])
-            bar.close = float(d[4])
+            bar.open = float(d[1+1])
+            bar.high = float(d[2+1])
+            bar.low = float(d[3+1])
+            bar.close = float(d[4+1])
             
-            bar.volume = float(d[5])
-            bar.openInterest = float(d[6])
+            bar.volume = float(d[5+1])
+            bar.openInterest = float(d[6+1])
 
             flt = {'datetime': bar.datetime}
             collection.update_one(flt, {'$set':bar.__dict__}, upsert=True)
-            print '%s \t %s' % (bar.date, bar.time)
+            print ('%s \t %s' % (bar.date, bar.time))
     
     print(u'插入完毕，耗时：%s' % (time()-start))
 
@@ -531,6 +542,15 @@ if __name__ == '__main__':
     # 这里将项目中包含的股指日内分钟线csv导入MongoDB，作者电脑耗时大约3分钟
     #loadMcCsv('IF0000_1min.csv', MINUTE_DB_NAME, 'IF0000')
     #loadMcCsv('RB0000_1min.csv', MINUTE_DB_NAME, 'RB0000')
-    loadTickCsv('rb1710_Tick_2017-03-01_2017-03-28.csv', MINUTE_DB_NAME, 'RB1710')
+    
+    #loadTickCsv('rb1710_Tick_2017-03-01_2017-03-28.csv', MINUTE_DB_NAME, 'RB1710')
     #导入通达信历史分钟数据
     #loadTdxCsv('CL8.csv', MINUTE_DB_NAME, 'c0000')
+    #loadTdxCsv('rb1710-1min.csv', MINUTE_DB_NAME, 'rb1710')
+
+    loadTBCsv('rb0000_1m.csv', MINUTE_DB_NAME, 'rb0000')
+
+    # from time import sleep
+    # e = HistoryDataEngine()
+    # sleep(1)
+    # e.downloadFuturesIntradayBar('rb1710')
