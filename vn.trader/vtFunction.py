@@ -34,23 +34,36 @@ def safeUnicode(value):
 def loadMongoSetting():
     """载入MongoDB数据库的配置"""
 
-    """载入MongoDB数据库的配置"""
-    fileName = 'VT_setting.json'
-    path = os.path.abspath(os.path.dirname(__file__)) 
-    fileName = os.path.join(path, fileName)  
-    
-    try:
+    setting = vtGlobal.VT_setting
+
+    if setting == None:
+        """载入MongoDB数据库的配置"""
+        fileName = 'VT_setting.json'
+        path = os.path.abspath(os.path.dirname(__file__)) 
+        fileName = os.path.join(path, fileName)  
         f = open(fileName)
         setting = json.load(f)
-        host = setting['mongoHost']
-        port = setting['mongoPort']
-        logging = setting['mongoLogging']
-    except:
-        host = 'localhost'
-        port = 27017
-        logging = False
+
+        #检测可用性，起用mongoHost1
+        from pymongo.errors import ConnectionFailure
+        import pymongo
+        try:
+            uri = 'mongodb://root:password@' + setting['mongoHost'] + ':' + str(setting['mongoPort']) + '/?serverSelectionTimeoutMS=200'
+            client = pymongo.MongoClient(uri, connect=False)
+            client.admin.command('ismaster')
+        except ConnectionFailure:
+            setting['mongoHost'] = setting['mongoHost1']
+            print("Default Mongo server not available, use backup Server ")
         
+        vtGlobal.VT_setting = setting
+
+
+    host = 'mongodb://root:password@' + setting['mongoHost']
+    port = setting['mongoPort']
+    logging = setting['mongoLogging']    
+
     return host, port, logging
+
 
 #----------------------------------------------------------------------
 def todayDate():

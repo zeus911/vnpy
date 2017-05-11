@@ -548,9 +548,9 @@ if __name__ == '__main__':
     #loadTdxCsv('CL8.csv', MINUTE_DB_NAME, 'c0000')
     #loadTdxCsv('rb1710-1min.csv', MINUTE_DB_NAME, 'rb1710')
 
-    loadTBCsv('rb0000_1m.csv', MINUTE_DB_NAME, 'rb0000')
+    #loadTBCsv('rb0000_1m.csv', MINUTE_DB_NAME, 'rb0000')
 
-    # from time import sleep
-    # e = HistoryDataEngine()
-    # sleep(1)
-    # e.downloadFuturesIntradayBar('rb1710')
+    from time import sleep
+    e = HistoryDataEngine()
+    sleep(1)
+    e.downloadFuturesIntradayBar('rb1710')

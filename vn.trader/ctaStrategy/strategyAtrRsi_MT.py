@@ -1,64 +1,60 @@
 # encoding: UTF-8
 
 """
-基于King Keltner通道的交易策略，适合用在股指上，
-展示了OCO委托和5分钟K线聚合的方法。
+一个ATR-RSI指标结合的交易策略，适合用在股指的1分钟和5分钟线上。
 
 注意事项：
 1. 作者不对交易盈利做任何保证，策略代码仅供参考
 2. 本策略需要用到talib，没有安装的用户请先参考www.vnpy.org上的教程安装
 3. 将IF0000_1min.csv用ctaHistoryData.py导入MongoDB后，直接运行本文件即可回测策略
+
 """
 
-from __future__ import division
-
-import sys
-sys.path.append('/Users/renxg/vnpy/vnpy/vn.trader')
 
 from ctaBase import *
-from ctaTemplate import *
+from ctaTemplate import CtaTemplate
 
 import talib
 import numpy as np
 from datetime import datetime
 
 ########################################################################
-class KkStrategy(CtaTemplate):
-    """基于King Keltner通道的交易策略"""
-    className = 'KkStrategy'
-    author = u'renxg'
+class AtrRsiStrategy(CtaTemplate):
+    """结合ATR和RSI指标的一个分钟线交易策略"""
+    className = 'AtrRsiStrategy'
+    author = u'用Python的交易员'
 
     # 策略参数
-    kkLength = 20           # 计算通道中值的窗口数
-    kkDev = 1.0            # 计算通道宽度的偏差
-    initDays = 10            # 初始化数据所用的天数
-    fixedSize = 1           # 每次交易的数量
+    atrLength = 22          # 计算ATR指标的窗口数   
+    atrMaLength = 10        # 计算ATR均线的窗口数
+    rsiLength = 5           # 计算RSI的窗口数
+    rsiEntry = 16           # RSI的开仓信号
     trailingPercent = 0.8   # 百分比移动止损
-    stopLossPercent = 1.5     # ATR 止损比例
+    initDays = 10           # 初始化数据所用的天数
+    fixedSize = 1           # 每次交易的数量
 
     # 策略变量
-    tickAdd = 1             # 委托时相对基准价格的超价
-    lastTick = None         # 最新tick数据
-    lastBar = None          # 最新bar数据
-    lastBarClose = 0
-    lastPrice = 0
-    intraTradeHigh = 0
-    intraTradeLow = 0
-
-    bar = None                  # 1分钟K线对象
+    bar = None                  # K线对象
     barMinute = EMPTY_STRING    # K线当前的分钟
-    fiveBar = None              # 1分钟K线对象
 
-    bufferSize = 21                   # 需要缓存的数据的大小
+    bufferSize = 100                    # 需要缓存的数据的大小
     bufferCount = 0                     # 目前已经缓存了的数据的计数
     highArray = np.zeros(bufferSize)    # K线最高价的数组
     lowArray = np.zeros(bufferSize)     # K线最低价的数组
     closeArray = np.zeros(bufferSize)   # K线收盘价的数组
     
+    atrCount = 0                        # 目前已经缓存了的ATR的计数
+    atrArray = np.zeros(bufferSize)     # ATR指标的数组
     atrValue = 0                        # 最新的ATR指标数值
-    kkMid = 0                           # KK通道中轨
-    kkUp = 0                            # KK通道上轨
-    kkDown = 0                          # KK通道下轨
+    atrMa = 0                           # ATR移动平均的数值
+
+    rsiValue = 0                        # RSI指标的数值
+    rsiBuy = 0                          # RSI买开阈值
+    rsiSell = 0                         # RSI卖开阈值
+    intraTradeHigh = 0                  # 移动止损用的持仓期内最高价
+    intraTradeLow = 0                   # 移动止损用的持仓期内最低价
+
+    orderList = []                      # 保存委托代码的列表
 
     buyOrderID = None              # OCO委托买入开仓的委托号
     shortOrderID = None            # OCO委托卖出开仓的委托号
@@ -72,52 +68,95 @@ class KkStrategy(CtaTemplate):
 
     openPrice = 0                   #开仓价
     pnl = 0                         #profit and loss
-    
 
     # 参数列表，保存了参数的名称
     paramList = ['name',
                  'className',
                  'author',
                  'vtSymbol',
-                 'kkLength',
-                 'kkDev']    
+                 'atrLength',
+                 'atrMaLength',
+                 'rsiLength',
+                 'rsiEntry',
+                 'trailingPercent']    
 
     # 变量列表，保存了变量的名称
     varList = ['inited',
                'trading',
                'pos',
                'atrValue',
-
-               'kkUp',
-               'kkMid',
-               'kkDown',
-
-               'lastPrice',
-               'pnl',
-               
-               'longStop',
-               'shortStop',
-                'holdTime',
-               'holidayTime'
-               ]  
+               'atrMa',
+               'rsiValue',
+               'rsiBuy',
+               'rsiSell']  
 
     #----------------------------------------------------------------------
     def __init__(self, ctaEngine, setting):
         """Constructor"""
-        super(KkStrategy, self).__init__(ctaEngine, setting)
+        super(AtrRsiStrategy, self).__init__(ctaEngine, setting)
         
+        # 注意策略类中的可变对象属性（通常是list和dict等），在策略初始化时需要重新创建，
+        # 否则会出现多个策略实例之间数据共享的情况，有可能导致潜在的策略逻辑错误风险，
+        # 策略类中的这些可变对象属性可以选择不写，全都放在__init__下面，写主要是为了阅读
+        # 策略时方便（更多是个编程习惯的选择）        
+
     #----------------------------------------------------------------------
     def onInit(self):
         """初始化策略（必须由用户继承实现）"""
         self.writeCtaLog(u'%s策略初始化' %self.name)
+    
+        # 初始化RSI入场阈值
+        self.rsiBuy = 50 + self.rsiEntry
+        self.rsiSell = 50 - self.rsiEntry
 
         # 载入历史数据，并采用回放计算的方式初始化策略数值
         initData = self.loadBar(self.initDays)
         for bar in initData:
-	        self.onBar(bar)
 
-        self.putEvent()
+            # 推送新数据, 同时检查是否有information bar需要推送
+            # Update new bar, check whether the Time Stamp matching any information bar
+            ibar = self.checkInfoBar(bar)
+            self.onBar(bar, infobar=ibar)
 
+
+    # ----------------------------------------------------------------------
+    def checkInfoBar(self, bar):
+        """在初始化时, 检查辅助品种数据的推送(初始化结束后, 回测时不会调用)"""
+
+        initInfoCursorDict = self.ctaEngine.initInfoCursor
+
+        # 如果"initInfobar"字典为空, 初始化字典, 插入第一个数据
+        # If dictionary "initInfobar" is empty, insert first data record
+        if self.initInfobar == {}:
+            for info_symbol in initInfoCursorDict:
+                try:
+                    self.initInfobar[info_symbol] = next(initInfoCursorDict[info_symbol])
+                except StopIteration:
+                    print "Data of information symbols is empty! Input is a list, not str."
+                    raise
+
+        # 若有某一品种的 TimeStamp 和执行报价的 TimeStamp 匹配, 则将"initInfobar"中的数据推送,
+        # 然后更新该品种的数据
+        # If any symbol's TimeStamp is matched with execution symbol's TimeStamp, return data
+        # in "initInfobar", and update new data.
+        temp = {}
+        for info_symbol in self.initInfobar:
+
+            data = self.initInfobar[info_symbol]
+
+            # Update data only when Time Stamp is matched
+            if data['datetime'] <= bar.datetime:
+                try:
+                    temp[info_symbol] = CtaBarData()
+                    temp[info_symbol].__dict__ = data
+                    self.initInfobar[info_symbol] = next(initInfoCursorDict[info_symbol])
+                except StopIteration:
+                    self.ctaEngine.output("No more data for initializing %s." % (info_symbol,))
+            else:
+                temp[info_symbol] = None
+
+        return temp
+        
     #----------------------------------------------------------------------
     def onStart(self):
         """启动策略（必须由用户继承实现）"""
@@ -133,15 +172,14 @@ class KkStrategy(CtaTemplate):
     #----------------------------------------------------------------------
     def onTick(self, tick):
         """收到行情TICK推送（必须由用户继承实现）"""
-        #sys.stdout.write(".")
-        #sys.stdout.flush()  
         self.lastTick = tick
         self.lastPrice = tick.lastPrice
 
-        # 聚合为1分钟K线
+
+        # 计算K线
         tickMinute = tick.datetime.minute
 
-        if tickMinute != self.barMinute:  
+        if tickMinute != self.barMinute:    
             if self.bar:
                 self.onBar(self.bar)
 
@@ -167,22 +205,6 @@ class KkStrategy(CtaTemplate):
             bar.high = max(bar.high, tick.lastPrice)
             bar.low = min(bar.low, tick.lastPrice)
             bar.close = tick.lastPrice
-        
-        self.putEvent()
-
-    #-------------------------------------------------------------------------------------------------------
-    def isTradingTime(self,time,timeRanges=[
-        (datetime.strptime("09:00:00", "%H:%M:%S").time(), datetime.strptime("10:15:00", "%H:%M:%S").time()),
-        (datetime.strptime("10:30:00", "%H:%M:%S").time(), datetime.strptime("11:30:00", "%H:%M:%S").time()),
-        (datetime.strptime("13:30:00", "%H:%M:%S").time(), datetime.strptime("15:00:00", "%H:%M:%S").time()),
-        (datetime.strptime("21:00:00", "%H:%M:%S").time(), datetime.strptime("23:00:00", "%H:%M:%S").time())
-         ]):
-
-        for tr in timeRanges:
-            if tr[0] <= time <= tr[1]:
-                return True
-        return False
-        pass
 
     #----------------------------------------------------------------------
     def onBar(self, bar):
@@ -203,159 +225,119 @@ class KkStrategy(CtaTemplate):
             else:
                 self.holidayTime -= 1
 
-        if abs(self.pos) > 0:
-            # 撤销之前发出的尚未成交的委托（包括限价单和停止单）
-            for orderID in self.orderList:
-                self.cancelOrder(orderID)
-            self.orderList = []
-
-            # 计算多头持有期内的最高价，以及重置最低价
-            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
-            self.intraTradeLow = min(self.intraTradeLow, bar.low)
-
-        # if self.pos > 0 and bar.close < self.kkMid:
-        #     orderID = self.sell(bar.close-self.tickAdd, abs(self.pos))
-        #     self.orderList.append(orderID)
-        # # 持有空头仓位
-        # elif self.pos < 0 and bar.close > self.kkMid:
-        #     orderID = self.cover(bar.close+self.tickAdd, abs(self.pos))
-        #     self.orderList.append(orderID)  
-
-        #重新设置止损点位
-        # 持有多头仓位
-        if self.pos > 0:
-            longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
-            # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
-            orderID = self.sell(longStop, abs(self.pos), stop=True)
-            self.orderList.append(orderID)
-            self.longStop = longStop
-
-        # 持有空头仓位
-        elif self.pos < 0:
-            # 计算空头移动止损
-            shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
-            orderID = self.cover(shortStop, abs(self.pos), stop=True)
-            self.orderList.append(orderID)
-            self.shortStop = shortStop
-
-        # if bar.datetime.time() > datetime.strptime("22:55:00", "%H:%M:%S").time():
-        #     #平仓
-        #     for orderID in self.orderList:
-        #         self.cancelOrder(orderID)
-        #         self.orderList = []
-
-        #     if self.pos > 0:
-        #         orderID = self.sell(bar.close -5, abs(self.pos))
-        #         self.orderList.append(orderID)
-        #     if self.pos < 0:
-        #         orderID = self.cover(bar.close + 5, abs(self.pos))
-        #         self.orderList.append(orderID)
-
-
-       # 加大开盘时的重要度
-        if  bar.datetime.time() <= datetime.strptime("10:00:00", "%H:%M:%S").time():
-            self.kCircle = 12
-        else:
-            self.kCircle = 20
-        if bar.datetime.minute % self.kCircle == 0:
-            if self.fiveBar:
-                # 将最新分钟的数据更新到目前5分钟线中
-                fiveBar = self.fiveBar
-                fiveBar.high = max(fiveBar.high, bar.high)
-                fiveBar.low = min(fiveBar.low, bar.low)
-                fiveBar.close = bar.close
-                
-                # 推送5分钟线数据
-                self.onFiveBar(fiveBar)
-                
-                # 清空5分钟线数据缓存
-                self.fiveBar = None
-        else:
-            # 如果没有缓存则新建
-            if not self.fiveBar:
-                fiveBar = CtaBarData()
-                
-                fiveBar.vtSymbol = bar.vtSymbol
-                fiveBar.symbol = bar.symbol
-                fiveBar.exchange = bar.exchange
-            
-                fiveBar.open = bar.open
-                fiveBar.high = bar.high
-                fiveBar.low = bar.low
-                fiveBar.close = bar.close
-            
-                fiveBar.date = bar.date
-                fiveBar.time = bar.time
-                fiveBar.datetime = bar.datetime 
-
-                self.fiveBar = fiveBar
-                
-            else:
-                fiveBar = self.fiveBar
-                fiveBar.high = max(fiveBar.high, bar.high)
-                fiveBar.low = min(fiveBar.low, bar.low)
-                fiveBar.close = bar.close
-    
-    #----------------------------------------------------------------------
-    def onFiveBar(self, bar):
-        """收到5分钟K线"""
-        self.writeCtaLog(u'处理Bar %s' %bar.datetime)
-
-        # 保存K线数据
-        self.closeArray[0:self.bufferSize-1] = self.closeArray[1:self.bufferSize]
-        self.highArray[0:self.bufferSize-1] = self.highArray[1:self.bufferSize]
-        self.lowArray[0:self.bufferSize-1] = self.lowArray[1:self.bufferSize]
-    
-        self.closeArray[-1] = bar.close
-        self.highArray[-1] = bar.high
-        self.lowArray[-1] = bar.low
-    
-        self.bufferCount += 1
-        if self.bufferCount < self.bufferSize:
-            return
-    
-        # 计算指标数值
-        self.atrValue = talib.ATR(self.highArray, 
-                                  self.lowArray, 
-                                  self.closeArray,
-                                  self.kkLength)[-1]
-        self.kkMid = talib.MA(self.closeArray, self.kkLength)[-1]
-        # m1 = talib.MA(self.highArray, self.kkLength)[-1]
-        # m2 = talib.MA(self.lowArray, self.kkLength)[-1]
-        # m3 = talib.MA(self.closeArray, self.kkLength)[-1]
-        # self.kkMid = (m1+m2+m3)/3
-
-
-        self.kkUp = self.kkMid + self.atrValue * self.kkDev
-        self.kkDown = self.kkMid - self.atrValue * self.kkDev
-
 
         # 撤销之前发出的尚未成交的委托（包括限价单和停止单）
         for orderID in self.orderList:
             self.cancelOrder(orderID)
         self.orderList = []
+        
+        # Update infomation data
+        # "infobar"是由不同时间或不同品种的品种数据组成的字典, 如果和执行品种的 TimeStamp 不匹配,
+        # 则传入的是"None", 当time stamp和执行品种匹配时, 传入的是"Bar"
+        self.updateInfoArray(kwargs["infobar"])
 
-        # 当前无仓位，发送OCO开仓委托
-        if self.pos == 0 and self.holidayTime <= 0:
-            self.sendOcoOrder(self.kkUp, self.kkDown, self.fixedSize)
+        # 保存K线数据
+        self.closeArray[0:self.bufferSize - 1] = self.closeArray[1:self.bufferSize]
+        self.highArray[0:self.bufferSize - 1] = self.highArray[1:self.bufferSize]
+        self.lowArray[0:self.bufferSize - 1] = self.lowArray[1:self.bufferSize]
+
+        self.closeArray[-1] = bar.close
+        self.highArray[-1] = bar.high
+        self.lowArray[-1] = bar.low
+
+        # 若读取的缓存数据不足, 不考虑交易
+        self.bufferCount += 1
+        if self.bufferCount < self.bufferSize:
+            return
+
+        # 计算指标数值
+
+        # 计算不同时间下的ATR数值
+
+        # Only trading when information bar changes
+        # 只有在30min或者1d K线更新后才可以交易
+        TradeOn = False
+        if any([i is not None for i in kwargs["infobar"].values()]):
+
+            TradeOn = True
+            self.scaledAtrValue1M = talib.ATR(self.highArray,
+                                       self.lowArray,
+                                       self.closeArray,
+                                       self.atrLength)[-1] * (25) ** (0.5)
+            self.atrValue30M = talib.abstract.ATR(self.infoArray["TestData @GC_30M"])[-1]
+            self.rsiValue = talib.abstract.RSI(self.infoArray["TestData @GC_30M"], self.rsiLength)[-1]
+
+        self.atrCount += 1
+        if self.atrCount < self.bufferSize:
+            return
+
+        # 判断是否要进行交易
+
+        # 当前无仓位
+        if (self.pos == 0 and TradeOn == True):
+            self.intraTradeHigh = bar.high
+            self.intraTradeLow = bar.low
+
+            # 1Min调整后ATR大于30MinATR
+            # 即处于趋势的概率较大，适合CTA开仓
+            if self.atrValue30M < self.scaledAtrValue1M:
+                # 使用RSI指标的趋势行情时，会在超买超卖区钝化特征，作为开仓信号
+                if self.rsiValue > self.rsiBuy:
+                    # 这里为了保证成交，选择超价5个整指数点下单
+                    self.buy(bar.close+5, 1)
+
+                elif self.rsiValue < self.rsiSell:
+                    self.short(bar.close-5, 1)
+
+                # 下单后, 在下一个30Min K线之前不交易
+                TradeOn = False
+
         # 持有多头仓位
-        elif self.pos > 0 and bar.close < self.kkUp:
-            orderID = self.sell(bar.close-self.tickAdd, abs(self.pos))
+        elif self.pos > 0:
+            # 计算多头持有期内的最高价，以及重置最低价
+            self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
+            self.intraTradeLow = bar.low
+            # 计算多头移动止损
+            longStop = self.intraTradeHigh * (1 - self.trailingPercent / 100)
+            # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
+            orderID = self.sell(longStop, 1, stop=True)
             self.orderList.append(orderID)
+
         # 持有空头仓位
-        elif self.pos < 0 and bar.close > self.kkDown:
-            orderID = self.cover(bar.close+self.tickAdd, abs(self.pos))
-            self.orderList.append(orderID)   
-    
+        elif self.pos < 0:
+            self.intraTradeLow = min(self.intraTradeLow, bar.low)
+            self.intraTradeHigh = bar.high
+
+            shortStop = self.intraTradeLow * (1 + self.trailingPercent / 100)
+            orderID = self.cover(shortStop, 1, stop=True)
+            self.orderList.append(orderID)
+
         # 发出状态更新事件
-        self.putEvent()        
+        self.putEvent()
+
 
     #----------------------------------------------------------------------
     def onOrder(self, order):
         """收到委托变化推送（必须由用户继承实现）"""
         pass
 
-    #----------------------------------------------------------------------
+
+    #-------------------------------------------------------------------------------------------------------
+    def isTradingTime(self,time,timeRanges=[
+        (datetime.strptime("09:00:00", "%H:%M:%S").time(), datetime.strptime("10:15:00", "%H:%M:%S").time()),
+        (datetime.strptime("10:30:00", "%H:%M:%S").time(), datetime.strptime("11:30:00", "%H:%M:%S").time()),
+        (datetime.strptime("13:30:00", "%H:%M:%S").time(), datetime.strptime("15:00:00", "%H:%M:%S").time()),
+        (datetime.strptime("21:00:00", "%H:%M:%S").time(), datetime.strptime("23:00:00", "%H:%M:%S").time())
+         ]):
+
+        for tr in timeRanges:
+            if tr[0] <= time <= tr[1]:
+                return True
+        return False
+        pass
+
+
+   #----------------------------------------------------------------------
     def onTrade(self, trade):
         # 多头开仓成交后，撤消空头委托
         if self.pos > 0:
@@ -380,17 +362,17 @@ class KkStrategy(CtaTemplate):
 
         
         if abs(self.pos) > 0:
-            # print("--------------",self.tradeIndex,"-----------------------")
-            # print(trade.__dict__)
-            # print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+            print("--------------",self.tradeIndex,"-----------------------")
+            print(trade.__dict__)
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
 
             #重新计数
             self.holdTime = 0
             self.holidayTime = 0
             self.openPrice = trade.price
         else:
-            # print(trade.direction,trade.offset,trade.price,trade.tradeTime)
-            # print('pnl =', self.pnl, "    Hold minutes: ", self.holdTime,"    ATR ", self.atrValue)
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+            print('pnl =', self.pnl, "    Hold minutes: ", self.holdTime,"    ATR ", self.atrValue)
 
             self.holidayTime = int(self.holdTime/3)
             # 30 minute punishment for short time holding
@@ -400,10 +382,6 @@ class KkStrategy(CtaTemplate):
                 self.holidayTime += 30
 
             self.tradeIndex += 1
-            
-        
-        # 发出状态更新事件
-        self.putEvent()
         
     #----------------------------------------------------------------------
     def sendOcoOrder(self, buyPrice, shortPrice, volume):
@@ -506,8 +484,6 @@ class KkStrategy(CtaTemplate):
         # 发出状态更新事件
         self.putEvent()
 
-
-
 if __name__ == '__main__':
     # 提供直接双击回测的功能
     # 导入PyQt4的包是为了保证matplotlib使用PyQt4而不是PySide，防止初始化出错
@@ -533,12 +509,12 @@ if __name__ == '__main__':
     engine.setSize(10) 
     
     # 设置使用的历史数据库
-    engine.setDatabase(MINUTE_DB_NAME, 'rb1710')
+    engine.setDatabase(MINUTE_DB_NAME, 'rb0000')
     
     if True:
         # 在引擎中创建策略对象
         d = {}
-        engine.initStrategy(KkStrategy, d)
+        engine.initStrategy(AtrRsiStrategy, d)
         
         # 开始跑回测
         engine.runBacktesting()
@@ -551,8 +527,9 @@ if __name__ == '__main__':
         setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
         #setting.addParameter('kkDev', 0.5, 2.0, 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
         #setting.addParameter('stopLossPercent', 2, 3, 0.5)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
-        #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
-        setting.addParameter('kkLength',18,23,1)
+        #setting.addParameter('rsiLength', 5,8,1)            # 增加一个固定数值的参数
+        setting.addParameter('atrLength',15,30,1)
+        # setting.addParameter('trailingPercent',0.6,1.0,0.05)
         
         # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
         # 测试时还跑着一堆其他的程序，性能仅供参考
@@ -563,6 +540,6 @@ if __name__ == '__main__':
         #engine.runOptimization(KkStrategy, setting)            
         
         # 多进程优化，耗时：89秒
-        engine.runParallelOptimization(KkStrategy, setting)     
+        engine.runParallelOptimization(AtrRsiStrategy, setting)     
         
         print (u'耗时：%s' %(time.time()-start))

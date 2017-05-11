@@ -21,9 +21,9 @@ class DualThrustStrategy(CtaTemplate):
     author = u'用Python的交易员'
 
     # 策略参数
-    fixedSize = 100
-    k1 = 0.4
-    k2 = 0.6
+    fixedSize = 1
+    k1 = 0.3
+    k2 = 0.3
 
     initDays = 10
 
@@ -145,7 +145,8 @@ class DualThrustStrategy(CtaTemplate):
         lastBar = self.barList[-2]
         
         # 新的一天
-        if lastBar.datetime.date() != bar.datetime.date():
+        #if lastBar.datetime.date() != bar.datetime.date():
+        if bar.datetime.time() == datetime.strptime("21:00:00", "%H:%M:%S").time():
             # 如果已经初始化
             if self.dayHigh:
                 self.range = self.dayHigh - self.dayLow
@@ -166,7 +167,7 @@ class DualThrustStrategy(CtaTemplate):
         if not self.range:
             return
 
-        if bar.datetime.time() < self.exitTime:
+        if bar.datetime.time() < self.exitTime or bar.datetime.time() > datetime.strptime("21:00:00", "%H:%M:%S").time():
             if self.pos == 0:
                 if bar.close > self.dayOpen:
                     if not self.longEntered:
@@ -222,14 +223,128 @@ class DualThrustStrategy(CtaTemplate):
 
     #----------------------------------------------------------------------
     def onTrade(self, trade):
+        
+        if abs(self.pos) > 0:
+            # print("--------------",self.tradeIndex,"-----------------------")
+            print(trade.__dict__)
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+        else:
+            print(trade.direction,trade.offset,trade.price,trade.tradeTime)
+            # print('pnl =', self.pnl, "    Hold minutes: ", self.holdTime,"    ATR ", self.atrValue)
+            
+        
         # 发出状态更新事件
         self.putEvent()
+        
+    #----------------------------------------------------------------------
+    def sendOcoOrder(self, buyPrice, shortPrice, volume):
+        """
+        发送OCO委托
+        
+        OCO(One Cancel Other)委托：
+        1. 主要用于实现区间突破入场
+        2. 包含两个方向相反的停止单
+        3. 一个方向的停止单成交后会立即撤消另一个方向的
+        """
+        # 发送双边的停止单委托，并记录委托号
+        self.buyOrderID = self.buy(buyPrice, volume, True)
+        self.shortOrderID = self.short(shortPrice, volume, True)
+        
+        # 将委托号记录到列表中
+        self.orderList.append(self.buyOrderID)
+        self.orderList.append(self.shortOrderID)
+        
+
+
+        
+
+    #----------------------------------------------------------------------
+    def onManualTrade(self, orderType):
+        """手动交易（必须由用户继承实现）
+        手动交易注意事项：
+        开仓：开仓方式应与本策略规则相同，否则开出的仓位可能会很快被策略平掉（通道内开仓后，策略会将通道内的仓位平掉）
+             可用于加仓
+        平仓：相当于止盈      
+        """
+        if not self.trading:
+            self.writeCtaLog(u'非交易状态')
+            return
+
+        if self.bar == None and self.lastTick == None:
+            self.writeCtaLog(u'策略没有当前价格信息')
+            return
+
+        # 先撤销之前的委托
+        for vtOrderID in self.orderList:
+            self.cancelOrder(vtOrderID)
+        self.orderList = []
+        
+        # 如果目标仓位和实际仓位一致，则不进行任何操作
+        posChange = 0
+        if orderType == CTAORDER_BUY or orderType == CTAORDER_COVER:
+            posChange = self.fixedSize
+        else:
+            posChange = -self.fixedSize
+
+        if not posChange:
+            return
+        
+        # 确定委托基准价格，有tick数据时优先使用，否则使用bar
+        longPrice = 0
+        shortPrice = 0
+        
+        if self.lastTick:
+            if posChange > 0:
+                longPrice = self.lastTick.askPrice1 + self.tickAdd
+            else:
+                shortPrice = self.lastTick.bidPrice1 - self.tickAdd
+        else:
+            if posChange > 0:
+                longPrice = self.lastBar.close + self.tickAdd
+            else:
+                shortPrice = self.lastBar.close - self.tickAdd
+        
+        # 回测模式下，采用合并平仓和反向开仓委托的方式
+        if self.getEngineType() == ENGINETYPE_BACKTESTING:
+            if posChange > 0:
+                vtOrderID = self.buy(longPrice, abs(posChange))
+            else:
+                vtOrderID = self.short(shortPrice, abs(posChange))
+            self.orderList.append(vtOrderID)
+        
+        # 实盘模式下，首先确保之前的委托都已经结束（全成、撤销）
+        # 然后先发平仓委托，等待成交后，再发送新的开仓委托
+        else:
+            # 检查之前委托都已结束
+            if self.orderList:
+                return
+            
+            # 买入
+            if posChange > 0:
+                if self.pos < 0:
+                    vtOrderID = self.cover(longPrice, abs(self.pos))
+                else:
+                    vtOrderID = self.buy(longPrice, abs(posChange))
+            # 卖出
+            else:
+                if self.pos > 0:
+                    vtOrderID = self.sell(shortPrice, abs(self.pos))
+                else:
+                    vtOrderID = self.short(shortPrice, abs(posChange))
+            self.orderList.append(vtOrderID)
+
+
+        # 发出状态更新事件
+        self.putEvent()
+
 
 
 if __name__ == '__main__':
     # 提供直接双击回测的功能
     # 导入PyQt4的包是为了保证matplotlib使用PyQt4而不是PySide，防止初始化出错
     from ctaBacktesting import *
+    
+    #from PyQt4 import QtCore, QtGui
     
     # 创建回测引擎
     engine = BacktestingEngine()
@@ -238,42 +353,48 @@ if __name__ == '__main__':
     engine.setBacktestingMode(engine.BAR_MODE)
 
     # 设置回测用的数据起始日期
-    engine.setStartDate('20120101')
+    engine.setStartDate('20160402',1)
     
     # 设置产品相关参数
-    engine.setSlippage(0.2)     # 股指1跳
-    engine.setRate(0.3/10000)   # 万0.3
-    engine.setSize(300)         # 股指合约大小 
-    engine.setPriceTick(0.2)    # 股指最小价格变动
+    #engine.setSlippage(0.2)     # 股指1跳
+    #engine.setRate(0.3/10000)   # 万0.3
+    #engine.setSize(300)         # 股指合约大小        
+    engine.setSlippage(0.1)
+    engine.setRate(1/10000)
+    engine.setSize(10) 
     
     # 设置使用的历史数据库
-    engine.setDatabase(MINUTE_DB_NAME, 'IF0000')
+    engine.setDatabase(MINUTE_DB_NAME, 'rb0000')
     
-    # 在引擎中创建策略对象
-    engine.initStrategy(DualThrustStrategy, {})
-    
-    # 开始跑回测
-    engine.runBacktesting()
-    
-    # 显示回测结果
-    engine.showBacktestingResult()
-    
-    ## 跑优化
-    #setting = OptimizationSetting()                 # 新建一个优化任务设置对象
-    #setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
-    #setting.addParameter('atrLength', 12, 20, 2)    # 增加第一个优化参数atrLength，起始11，结束12，步进1
-    #setting.addParameter('atrMa', 20, 30, 5)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
-    #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
-    
-    ## 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
-    ## 测试时还跑着一堆其他的程序，性能仅供参考
-    #import time    
-    #start = time.time()
-    
-    ## 运行单进程优化函数，自动输出结果，耗时：359秒
-    #engine.runOptimization(AtrRsiStrategy, setting)            
-    
-    ## 多进程优化，耗时：89秒
-    ##engine.runParallelOptimization(AtrRsiStrategy, setting)     
-    
-    #print u'耗时：%s' %(time.time()-start)
+    if True:
+        # 在引擎中创建策略对象
+        d = {}
+        engine.initStrategy(DualThrustStrategy, d)
+        
+        # 开始跑回测
+        engine.runBacktesting()
+        
+        # 显示回测结果
+        engine.showBacktestingResult()
+    else:
+        # 跑优化
+        setting = OptimizationSetting()                 # 新建一个优化任务设置对象
+        setting.setOptimizeTarget('capital')            # 设置优化排序的目标是策略净盈利
+        #setting.addParameter('kkDev', 0.5, 2.0, 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
+        #setting.addParameter('stopLossPercent', 2, 3, 0.5)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
+        #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
+        setting.addParameter('k1',0.1,0.5,0.1)
+        setting.addParameter('k2',0.1,0.5,0.1)
+
+        # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
+        # 测试时还跑着一堆其他的程序，性能仅供参考
+        import time    
+        start = time.time()
+        
+        # 运行单进程优化函数，自动输出结果，耗时：359秒
+        #engine.runOptimization(KkStrategy, setting)            
+        
+        # 多进程优化，耗时：89秒
+        engine.runParallelOptimization(DualThrustStrategy, setting)     
+        
+        print (u'耗时：%s' %(time.time()-start))
