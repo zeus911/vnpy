@@ -11,16 +11,25 @@
 """
 
 from __future__ import division
-
 import sys
-sys.path.append('/Users/renxg/vnpy/vnpy/vn.trader')
+sys.path.append('../')
+sys.path.append('../../')
 
 from ctaBase import *
-from ctaTemplate import *
+from ctaTemplate import CtaTemplate
 
 import talib
 import numpy as np
 from datetime import datetime
+import json
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime):
+            return o.isoformat()
+
+        return json.JSONEncoder.default(self, o)
+
 
 ########################################################################
 class KkStrategy(CtaTemplate):
@@ -34,7 +43,7 @@ class KkStrategy(CtaTemplate):
     initDays = 10            # 初始化数据所用的天数
     fixedSize = 1           # 每次交易的数量
     trailingPercent = 0.8   # 百分比移动止损
-    stopLossPercent = 1.5     # ATR 止损比例
+    stopLossPercent = 1.2     # ATR 止损比例
 
     # 策略变量
     tickAdd = 1             # 委托时相对基准价格的超价
@@ -79,6 +88,7 @@ class KkStrategy(CtaTemplate):
                  'className',
                  'author',
                  'vtSymbol',
+                 'fixedSize',
                  'kkLength',
                  'kkDev']    
 
@@ -100,6 +110,7 @@ class KkStrategy(CtaTemplate):
                 'holdTime',
                'holidayTime'
                ]  
+
 
     #----------------------------------------------------------------------
     def __init__(self, ctaEngine, setting):
@@ -168,7 +179,7 @@ class KkStrategy(CtaTemplate):
             bar.low = min(bar.low, tick.lastPrice)
             bar.close = tick.lastPrice
         
-        self.putEvent()
+        #self.putEvent()
 
     #-------------------------------------------------------------------------------------------------------
     def isTradingTime(self,time,timeRanges=[
@@ -190,6 +201,10 @@ class KkStrategy(CtaTemplate):
         #date check
         if not self.isTradingTime(bar.datetime.time()):
             return
+
+        #打印价差过大信息
+        if self.lastBar and abs(bar.open - self.lastBar.close) > 10:
+            print(u'价差过大 %s，请检查数据 %s -- %s  %s -- %s' %(bar.open - self.lastBar.close,self.lastBar.datetime,self.lastBar.close , bar.datetime , bar.open))
 
         #更新last Bar
         self.lastBar = bar
@@ -213,18 +228,11 @@ class KkStrategy(CtaTemplate):
             self.intraTradeHigh = max(self.intraTradeHigh, bar.high)
             self.intraTradeLow = min(self.intraTradeLow, bar.low)
 
-        # if self.pos > 0 and bar.close < self.kkMid:
-        #     orderID = self.sell(bar.close-self.tickAdd, abs(self.pos))
-        #     self.orderList.append(orderID)
-        # # 持有空头仓位
-        # elif self.pos < 0 and bar.close > self.kkMid:
-        #     orderID = self.cover(bar.close+self.tickAdd, abs(self.pos))
-        #     self.orderList.append(orderID)  
-
         #重新设置止损点位
         # 持有多头仓位
         if self.pos > 0:
             longStop = self.intraTradeHigh - max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            #longStop = self.intraTradeHigh * (1-self.trailingPercent/100)
             # 发出本地止损委托，并且把委托号记录下来，用于后续撤单
             orderID = self.sell(longStop, abs(self.pos), stop=True)
             self.orderList.append(orderID)
@@ -234,11 +242,17 @@ class KkStrategy(CtaTemplate):
         elif self.pos < 0:
             # 计算空头移动止损
             shortStop = self.intraTradeLow + max(self.atrValue*self.stopLossPercent,abs(self.intraTradeHigh - self.intraTradeLow)*0.2)
+            #shortStop = self.intraTradeLow * (1+self.trailingPercent/100)
             orderID = self.cover(shortStop, abs(self.pos), stop=True)
             self.orderList.append(orderID)
             self.shortStop = shortStop
 
-        # if bar.datetime.time() > datetime.strptime("22:55:00", "%H:%M:%S").time():
+        '''
+        如每日平仓，收益曲线还比较好的话，策略就牛了。
+        每日平仓在回测时能避免隔夜随机收入，以及换月无效收入。
+        '''
+        #第日平仓
+        # if bar.datetime.time() > datetime.strptime("14:55:00", "%H:%M:%S").time():
         #     #平仓
         #     for orderID in self.orderList:
         #         self.cancelOrder(orderID)
@@ -250,6 +264,7 @@ class KkStrategy(CtaTemplate):
         #     if self.pos < 0:
         #         orderID = self.cover(bar.close + 5, abs(self.pos))
         #         self.orderList.append(orderID)
+
 
 
        # 加大开盘时的重要度
@@ -319,15 +334,19 @@ class KkStrategy(CtaTemplate):
                                   self.lowArray, 
                                   self.closeArray,
                                   self.kkLength)[-1]
+
+        '''
+        行情向上时：放低上限，便于开仓； 放低下限，避免做空，
+        行情向下时：提高上限，避免开仓； 提高下限，便于开仓
+        '''
+        real = talib.LINEARREG_SLOPE(self.closeArray, self.kkLength)[-1]
         self.kkMid = talib.MA(self.closeArray, self.kkLength)[-1]
-        # m1 = talib.MA(self.highArray, self.kkLength)[-1]
-        # m2 = talib.MA(self.lowArray, self.kkLength)[-1]
-        # m3 = talib.MA(self.closeArray, self.kkLength)[-1]
-        # self.kkMid = (m1+m2+m3)/3
+        self.kkUp = self.kkMid + self.atrValue * self.kkDev - real
+        self.kkDown = self.kkMid - self.atrValue * self.kkDev - real
 
-
-        self.kkUp = self.kkMid + self.atrValue * self.kkDev
-        self.kkDown = self.kkMid - self.atrValue * self.kkDev
+        # self.kkMid = talib.MA(self.closeArray,self.kkLength)[-1]
+        # self.kkUp = talib.MA(self.highArray,self.kkLength)[-1] - real
+        # self.kkDown = talib.MA(self.lowArray,self.kkLength)[-1] - real
 
 
         # 撤销之前发出的尚未成交的委托（包括限价单和停止单）
@@ -335,15 +354,48 @@ class KkStrategy(CtaTemplate):
             self.cancelOrder(orderID)
         self.orderList = []
 
+        """
+        Bug fix: 修复刚进场就无亏离场的Bug
+        Bar回测结果表明：总的pnl没太大变化；在Tick环境中，可能会有明显的过滤效果，使得Tick运行结果与Bar运行结果相近
+        """
+        #如果持仓小于5分钟，且盈亏三个点以内，则继续持仓
+        if abs(self.pos) > 0 and self.holdTime <= 5 and abs(self.pnl/self.fixedSize/10) <= 3:
+            self.putEvent()   
+            return
+
+        """
+        Bug fix: 第一脚没踏进，第二脚踏不上节奏的问题
+        场景：在20分钟间隔的Bar_A，Bar_B两点，价格形态如这样^_^ Bar_A后突破的买点被遗漏，程序到Bar_B后又找到了买点。
+             A点后入场比B点后入场多了自动上移止损点位的优势。这时需要对B点后入场进行止损优化
+        优化目标1：B点入场，如果发生止损，与A点止损价格相同
+        优化目标2：如A点后入已经止损，则B点也不再进入
+        """
+        #如果空仓且当前价位已在通道外，证明错过了上次开仓时机
+        #估出A-B间的高点到当前价的gap
+        #将Gap优化到止损点中去
+        
+        if self.pos == 0 :
+            gap = 0
+            if bar.close > self.kkUp:
+                gap = max(self.highArray[-2:-1]) - bar.close
+            elif bar.close < self.kkDown:
+                gap = bar.close - min(self.lowArray[-2:-1])
+
+            #Gap > 止损价， 不再开仓。宁愿错过
+            if gap > self.atrValue*self.stopLossPercent:
+                self.putEvent()
+                return
+        
+
         # 当前无仓位，发送OCO开仓委托
         if self.pos == 0 and self.holidayTime <= 0:
             self.sendOcoOrder(self.kkUp, self.kkDown, self.fixedSize)
         # 持有多头仓位
-        elif self.pos > 0 and bar.close < self.kkUp:
+        elif self.pos > 0 and bar.close < self.kkMid:
             orderID = self.sell(bar.close-self.tickAdd, abs(self.pos))
             self.orderList.append(orderID)
         # 持有空头仓位
-        elif self.pos < 0 and bar.close > self.kkDown:
+        elif self.pos < 0 and bar.close > self.kkMid:
             orderID = self.cover(bar.close+self.tickAdd, abs(self.pos))
             self.orderList.append(orderID)   
     
@@ -357,6 +409,13 @@ class KkStrategy(CtaTemplate):
 
     #----------------------------------------------------------------------
     def onTrade(self, trade):
+        
+        content = json.dumps(trade.__dict__,cls=DateTimeEncoder,indent=4,ensure_ascii=False)
+        self.writeCtaLog(u'%s 交易: %s' %(self.tradeIndex, content))
+
+        if abs(self.pos) == 0:
+            self.writeCtaLog(u'%s 交易: PNL = %s  HoldTime = %s' %(self.tradeIndex, self.pnl, self.holdTime))
+
         # 多头开仓成交后，撤消空头委托
         if self.pos > 0:
             self.cancelOrder(self.shortOrderID)
@@ -373,35 +432,37 @@ class KkStrategy(CtaTemplate):
             if self.shortOrderID in self.orderList:
                 self.orderList.remove(self.shortOrderID)
         
-        #重置
+        #重置 intraTradeHigh intraTradeLow
         if abs(self.pos) > 0:
-            self.intraTradeHigh = trade.price
-            self.intraTradeLow = trade.price
+            '''
+            场景：开盘高开后，一路向下，止损。
+            问题：止损点位没有因为开盘时的冲高而跟踪向上
+            '''
+            #bug fix: 实盘下Tick触发交易，最高值值最低值由当前Bar来定。回测时由 lastBar来定
+            if self.bar:
+                self.intraTradeHigh = self.bar.high
+                self.intraTradeLow = self.bar.low
+            else:
+                self.intraTradeHigh = self.lastBar.high
+                self.intraTradeLow = self.lastBar.low
 
-        
-        if abs(self.pos) > 0:
-            # print("--------------",self.tradeIndex,"-----------------------")
-            # print(trade.__dict__)
-            # print(trade.direction,trade.offset,trade.price,trade.tradeTime)
-
+        #Bug fix: 注意,一个单子分次成交后，会回调Ontrader多次
+        #完全成交后，重新计数
+        if abs(self.pos) == self.fixedSize:
             #重新计数
             self.holdTime = 0
             self.holidayTime = 0
             self.openPrice = trade.price
-        else:
-            # print(trade.direction,trade.offset,trade.price,trade.tradeTime)
-            # print('pnl =', self.pnl, "    Hold minutes: ", self.holdTime,"    ATR ", self.atrValue)
 
+        #完全平仓后
+        elif self.pos == 0:
+            self.tradeIndex += 1 #设置下次交易编号
+            #设置空仓时间
             self.holidayTime = int(self.holdTime/3)
-            # 30 minute punishment for short time holding
-            if self.holdTime < 60:
-                self.holidayTime += 30
-            if self.pnl < 0:
-                self.holidayTime += 30
 
-            self.tradeIndex += 1
-            
-        
+        # if self.pnl < 10:
+        #     print( talib.HT_DCPHASE(self.closeArray)[-1])
+
         # 发出状态更新事件
         self.putEvent()
         
@@ -422,10 +483,6 @@ class KkStrategy(CtaTemplate):
         # 将委托号记录到列表中
         self.orderList.append(self.buyOrderID)
         self.orderList.append(self.shortOrderID)
-        
-
-
-        
 
     #----------------------------------------------------------------------
     def onManualTrade(self, orderType):
@@ -522,7 +579,7 @@ if __name__ == '__main__':
     engine.setBacktestingMode(engine.BAR_MODE)
 
     # 设置回测用的数据起始日期
-    engine.setStartDate('20160402',1)
+    engine.setStartDate('20170401',1)
     
     # 设置产品相关参数
     #engine.setSlippage(0.2)     # 股指1跳
@@ -545,6 +602,9 @@ if __name__ == '__main__':
         
         # 显示回测结果
         engine.showBacktestingResult()
+
+        for log in engine.logList:print(log)
+
     else:
         # 跑优化
         setting = OptimizationSetting()                 # 新建一个优化任务设置对象
@@ -552,7 +612,7 @@ if __name__ == '__main__':
         #setting.addParameter('kkDev', 0.5, 2.0, 0.10)    # 增加第一个优化参数kkDev，起始0.5，结束1.5，步进1
         #setting.addParameter('stopLossPercent', 2, 3, 0.5)        # 增加第二个优化参数atrMa，起始20，结束30，步进1
         #setting.addParameter('rsiLength', 5)            # 增加一个固定数值的参数
-        setting.addParameter('kkLength',18,23,1)
+        #setting.addParameter('kkLength',18,23,1)
         
         # 性能测试环境：I7-3770，主频3.4G, 8核心，内存16G，Windows 7 专业版
         # 测试时还跑着一堆其他的程序，性能仅供参考
